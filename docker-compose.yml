@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  backend:
+    build: ./backend
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./backend/game.db:/app/game.db
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+
+  admin:
+    build: ./admin
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+
