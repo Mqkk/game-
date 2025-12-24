@@ -12,6 +12,10 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [editingStartDate, setEditingStartDate] = useState(false);
   const [startDateValue, setStartDateValue] = useState('');
+  const [welcomeBanner, setWelcomeBanner] = useState(null);
+  const [editingBanner, setEditingBanner] = useState(false);
+  const [bannerMessage, setBannerMessage] = useState('');
+  const [bannerEnabled, setBannerEnabled] = useState(true);
 
   useEffect(() => {
     loadData();
@@ -19,17 +23,25 @@ function App() {
 
   const loadData = async () => {
     try {
-      const [messagesRes, stateRes] = await Promise.all([
+      const [messagesRes, stateRes, bannerRes] = await Promise.all([
         axios.get(`${API_URL}/api/admin/messages`),
         axios.get(`${API_URL}/api/admin/game-state`),
+        axios.get(`${API_URL}/api/admin/welcome-banner`),
       ]);
       setMessages(messagesRes.data);
       setGameState(stateRes.data);
+      setWelcomeBanner(bannerRes.data);
+      
       if (stateRes.data?.startDate) {
         // Преобразуем дату в формат для input[type="datetime-local"]
         const date = new Date(stateRes.data.startDate);
         const localDate = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
         setStartDateValue(localDate.toISOString().slice(0, 16));
+      }
+      
+      if (bannerRes.data) {
+        setBannerMessage(bannerRes.data.message || '');
+        setBannerEnabled(bannerRes.data.enabled !== false);
       }
     } catch (error) {
       console.error('Ошибка загрузки данных:', error);
@@ -75,6 +87,29 @@ function App() {
       console.error('Ошибка сохранения:', error);
       alert('Ошибка сохранения стартовой даты');
     }
+  };
+
+  const handleSaveBanner = async () => {
+    try {
+      await axios.put(`${API_URL}/api/admin/welcome-banner`, {
+        message: bannerMessage,
+        enabled: bannerEnabled,
+      });
+      await loadData();
+      setEditingBanner(false);
+      alert('Настройки баннера обновлены!');
+    } catch (error) {
+      console.error('Ошибка сохранения:', error);
+      alert('Ошибка сохранения настроек баннера');
+    }
+  };
+
+  const handleCancelBanner = () => {
+    if (welcomeBanner) {
+      setBannerMessage(welcomeBanner.message || '');
+      setBannerEnabled(welcomeBanner.enabled !== false);
+    }
+    setEditingBanner(false);
   };
 
   if (loading) {
@@ -128,13 +163,78 @@ function App() {
         )}
       </header>
 
+      <div className="welcome-banner-section">
+        <h2>🎉 Приветственный баннер</h2>
+        {welcomeBanner && (
+          <div className="banner-card">
+            {editingBanner ? (
+              <div className="banner-edit-form">
+                <label>
+                  Сообщение баннера:
+                  <textarea
+                    value={bannerMessage}
+                    onChange={(e) => setBannerMessage(e.target.value)}
+                    placeholder="Введите приветственное сообщение..."
+                    rows={4}
+                    className="banner-textarea"
+                  />
+                </label>
+                <label className="checkbox-label">
+                  <input
+                    type="checkbox"
+                    checked={bannerEnabled}
+                    onChange={(e) => setBannerEnabled(e.target.checked)}
+                  />
+                  <span>Показывать баннер при запуске игры</span>
+                </label>
+                {welcomeBanner.lastShownAt && (
+                  <p className="last-shown">
+                    Последний показ: {new Date(welcomeBanner.lastShownAt).toLocaleString('ru-RU')}
+                  </p>
+                )}
+                <div className="banner-buttons">
+                  <button onClick={handleSaveBanner} className="save-btn">
+                    Сохранить
+                  </button>
+                  <button onClick={handleCancelBanner} className="cancel-btn">
+                    Отмена
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="banner-display">
+                <div className="banner-status">
+                  <span className={bannerEnabled ? 'status-enabled' : 'status-disabled'}>
+                    {bannerEnabled ? '✅ Включен' : '❌ Выключен'}
+                  </span>
+                </div>
+                <p className="banner-message-preview">{welcomeBanner.message || 'Сообщение не задано'}</p>
+                {welcomeBanner.lastShownAt && (
+                  <p className="last-shown">
+                    Последний показ: {new Date(welcomeBanner.lastShownAt).toLocaleString('ru-RU')}
+                  </p>
+                )}
+                <button onClick={() => setEditingBanner(true)} className="edit-btn">
+                  Редактировать
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
       <div className="messages-container">
         <h2>Сообщения для точек</h2>
+        {gameState && gameState.reachablePositions && (
+          <p className="points-info">
+            Отображаются только точки, которые будут посещены в течение игры ({gameState.reachablePositions.length} точек)
+          </p>
+        )}
         <div className="messages-grid">
-          {Array.from({ length: 90 }, (_, i) => i + 1).map((pointIndex) => {
+          {(gameState?.reachablePositions || Array.from({ length: 90 }, (_, i) => i + 1)).map((pointIndex) => {
             const message = messages.find((m) => m.pointIndex === pointIndex);
             const isEditing = editingPoint === pointIndex;
-            const isVisited = gameState && pointIndex <= gameState.currentPosition;
+            const isVisited = gameState && pointIndex < gameState.currentPosition;
 
             return (
               <div

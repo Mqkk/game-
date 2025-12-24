@@ -17,6 +17,9 @@ export class GameState {
   @Column({ type: 'text', nullable: true })
   startDate: string;
 
+  @Column({ type: 'text', nullable: true, default: '[]' })
+  completedSudokus: string; // JSON массив номеров больших точек, для которых пройдено судоку
+
   @CreateDateColumn()
   createdAt: Date;
 }
@@ -31,6 +34,27 @@ export class PointMessage {
 
   @Column({ type: 'text', default: '' })
   message: string;
+
+  @CreateDateColumn()
+  createdAt: Date;
+
+  @CreateDateColumn()
+  updatedAt: Date;
+}
+
+@Entity('welcome_banner')
+export class WelcomeBanner {
+  @PrimaryGeneratedColumn()
+  id: number;
+
+  @Column({ type: 'text', default: 'Добро пожаловать в игру!' })
+  message: string;
+
+  @Column({ default: true })
+  enabled: boolean; // Включен ли показ баннера
+
+  @Column({ type: 'text', nullable: true })
+  lastShownAt: string; // Дата последнего показа баннера
 
   @CreateDateColumn()
   createdAt: Date;

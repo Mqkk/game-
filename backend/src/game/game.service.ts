@@ -1,7 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
-import { GameState, PointMessage } from "./game.entity";
+import { GameState, PointMessage, WelcomeBanner } from "./game.entity";
 
 // Предрассчитанная последовательность кубика (сумма = 90, 34 хода)
 // Рассчитано так, чтобы ровно 2 февраля достичь финиша
@@ -51,7 +51,9 @@ export class GameService {
     @InjectRepository(GameState)
     private gameStateRepository: Repository<GameState>,
     @InjectRepository(PointMessage)
-    private pointMessageRepository: Repository<PointMessage>
+    private pointMessageRepository: Repository<PointMessage>,
+    @InjectRepository(WelcomeBanner)
+    private welcomeBannerRepository: Repository<WelcomeBanner>
   ) {}
 
   async getGameState() {
@@ -67,6 +69,7 @@ export class GameService {
             totalMoves: 0,
             lastMoveDate: null,
             startDate: DEFAULT_START_DATE,
+            completedSudokus: '[]',
           },
           ["id"]
         );
@@ -92,6 +95,12 @@ export class GameService {
     // Если startDate не установлена, устанавливаем значение по умолчанию
     if (!state.startDate) {
       state.startDate = DEFAULT_START_DATE;
+      await this.gameStateRepository.save(state);
+    }
+
+    // Если completedSudokus не установлено, устанавливаем пустой массив
+    if (!state.completedSudokus) {
+      state.completedSudokus = '[]';
       await this.gameStateRepository.save(state);
     }
 
@@ -154,7 +163,40 @@ export class GameService {
       return { canMove: false, reason: "Игра завершена!" };
     }
 
+    // Проверка судоку для определенных дней (5, 10, 15, 25, 30)
+    const SUDOKU_DAYS = [5, 10, 15, 25, 30];
+    const currentDay = state.totalMoves;
+    if (SUDOKU_DAYS.includes(currentDay)) {
+      const completedSudokus = this.parseCompletedSudokus(state.completedSudokus);
+      if (!completedSudokus.includes(currentDay)) {
+        return {
+          canMove: false,
+          reason: "Сначала нужно решить судоку на этом дне!",
+        };
+      }
+    }
+
     return { canMove: true };
+  }
+
+  private parseCompletedSudokus(completedSudokusStr: string | null): number[] {
+    if (!completedSudokusStr) return [];
+    try {
+      return JSON.parse(completedSudokusStr);
+    } catch {
+      return [];
+    }
+  }
+
+  async completeSudoku(day: number): Promise<void> {
+    const state = await this.getGameState();
+    const completedSudokus = this.parseCompletedSudokus(state.completedSudokus);
+    
+    if (!completedSudokus.includes(day)) {
+      completedSudokus.push(day);
+      state.completedSudokus = JSON.stringify(completedSudokus);
+      await this.gameStateRepository.save(state);
+    }
   }
 
   async makeMove(): Promise<{
@@ -210,5 +252,53 @@ export class GameService {
     return await this.pointMessageRepository.find({
       order: { pointIndex: "ASC" },
     });
+  }
+
+  // Возвращает список позиций, которые будут посещены в течение всей игры
+  getReachablePositions(currentPosition: number, totalMoves: number): number[] {
+    const positions: number[] = [currentPosition]; // Текущая позиция уже посещена
+    
+    let position = currentPosition;
+    for (let i = totalMoves; i < DICE_SEQUENCE.length; i++) {
+      const diceValue = DICE_SEQUENCE[i];
+      position = Math.min(position + diceValue, TOTAL_POINTS);
+      if (!positions.includes(position)) {
+        positions.push(position);
+      }
+    }
+    
+    return positions.sort((a, b) => a - b);
+  }
+
+  async getWelcomeBanner() {
+    let banner = await this.welcomeBannerRepository.findOne({ where: { id: 1 } });
+    
+    if (!banner) {
+      // Создаем баннер по умолчанию
+      banner = this.welcomeBannerRepository.create({
+        id: 1,
+        message: 'Добро пожаловать в игру!',
+        enabled: true,
+        lastShownAt: null,
+      });
+      banner = await this.welcomeBannerRepository.save(banner);
+    }
+    
+    return banner;
+  }
+
+  async markBannerShown(): Promise<void> {
+    let banner = await this.welcomeBannerRepository.findOne({ where: { id: 1 } });
+    
+    if (!banner) {
+      banner = this.welcomeBannerRepository.create({
+        id: 1,
+        message: 'Добро пожаловать в игру!',
+        enabled: true,
+      });
+    }
+    
+    banner.lastShownAt = new Date().toISOString();
+    await this.welcomeBannerRepository.save(banner);
   }
 }

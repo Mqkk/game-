@@ -37,5 +37,15 @@ export class AdminController {
   async updateStartDate(@Body() body: { startDate: string }) {
     return await this.adminService.updateStartDate(body.startDate);
   }
+
+  @Get('welcome-banner')
+  async getWelcomeBanner() {
+    return await this.adminService.getWelcomeBanner();
+  }
+
+  @Put('welcome-banner')
+  async updateWelcomeBanner(@Body() body: { message: string; enabled: boolean }) {
+    return await this.adminService.updateWelcomeBanner(body.message, body.enabled);
+  }
 }
 

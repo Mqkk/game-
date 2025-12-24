@@ -77,9 +77,116 @@
   gap: 10px;
 }
 
-.messages-container h2 {
+.welcome-banner-section {
+  margin-bottom: 40px;
+  padding-bottom: 30px;
+  border-bottom: 2px solid #e0e0e0;
+}
+
+.welcome-banner-section h2 {
   color: #333;
   margin-bottom: 20px;
+}
+
+.banner-card {
+  background: #f9f9f9;
+  border: 2px solid #e0e0e0;
+  border-radius: 10px;
+  padding: 20px;
+}
+
+.banner-display {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.banner-status {
+  font-weight: 600;
+  font-size: 1.1em;
+}
+
+.status-enabled {
+  color: #4caf50;
+}
+
+.status-disabled {
+  color: #f44336;
+}
+
+.banner-message-preview {
+  color: #666;
+  font-size: 1em;
+  line-height: 1.6;
+  padding: 15px;
+  background: white;
+  border-radius: 5px;
+  border: 1px solid #ddd;
+}
+
+.last-shown {
+  color: #999;
+  font-size: 0.9em;
+  font-style: italic;
+  margin: 0;
+}
+
+.banner-edit-form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.banner-edit-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  color: #333;
+  font-weight: 600;
+}
+
+.banner-textarea {
+  padding: 10px;
+  border: 2px solid #ddd;
+  border-radius: 5px;
+  font-family: inherit;
+  font-size: 1em;
+  resize: vertical;
+  min-height: 100px;
+}
+
+.checkbox-label {
+  flex-direction: row !important;
+  align-items: center;
+  gap: 10px;
+  font-weight: 500;
+}
+
+.checkbox-label input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+}
+
+.banner-buttons {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.messages-container h2 {
+  color: #333;
+  margin-bottom: 10px;
+}
+
+.points-info {
+  color: #666;
+  font-size: 0.95em;
+  margin-bottom: 20px;
+  padding: 10px;
+  background: #f0f0f0;
+  border-radius: 5px;
+  border-left: 3px solid #667eea;
 }
 
 .messages-grid {
