@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import './App.css';
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+import "./App.css";
 
 const API_URL = import.meta.env.VITE_API_URL || 'https://game-api.dev.datefrueet.ru';
 
@@ -8,13 +8,13 @@ function App() {
   const [messages, setMessages] = useState([]);
   const [gameState, setGameState] = useState(null);
   const [editingPoint, setEditingPoint] = useState(null);
-  const [editText, setEditText] = useState('');
+  const [editText, setEditText] = useState("");
   const [loading, setLoading] = useState(true);
   const [editingStartDate, setEditingStartDate] = useState(false);
-  const [startDateValue, setStartDateValue] = useState('');
+  const [startDateValue, setStartDateValue] = useState("");
   const [welcomeBanner, setWelcomeBanner] = useState(null);
   const [editingBanner, setEditingBanner] = useState(false);
-  const [bannerMessage, setBannerMessage] = useState('');
+  const [bannerMessage, setBannerMessage] = useState("");
   const [bannerEnabled, setBannerEnabled] = useState(true);
 
   useEffect(() => {
@@ -31,20 +31,22 @@ function App() {
       setMessages(messagesRes.data);
       setGameState(stateRes.data);
       setWelcomeBanner(bannerRes.data);
-      
+
       if (stateRes.data?.startDate) {
         // Преобразуем дату в формат для input[type="datetime-local"]
         const date = new Date(stateRes.data.startDate);
-        const localDate = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
+        const localDate = new Date(
+          date.getTime() - date.getTimezoneOffset() * 60000
+        );
         setStartDateValue(localDate.toISOString().slice(0, 16));
       }
-      
+
       if (bannerRes.data) {
-        setBannerMessage(bannerRes.data.message || '');
+        setBannerMessage(bannerRes.data.message || "");
         setBannerEnabled(bannerRes.data.enabled !== false);
       }
     } catch (error) {
-      console.error('Ошибка загрузки данных:', error);
+      console.error("Ошибка загрузки данных:", error);
     } finally {
       setLoading(false);
     }
@@ -52,7 +54,7 @@ function App() {
 
   const handleEdit = (point) => {
     setEditingPoint(point.pointIndex);
-    setEditText(point.message || '');
+    setEditText(point.message || "");
   };
 
   const handleSave = async (pointIndex) => {
@@ -63,16 +65,16 @@ function App() {
       });
       await loadData();
       setEditingPoint(null);
-      setEditText('');
+      setEditText("");
     } catch (error) {
-      console.error('Ошибка сохранения:', error);
-      alert('Ошибка сохранения сообщения');
+      console.error("Ошибка сохранения:", error);
+      alert("Ошибка сохранения сообщения");
     }
   };
 
   const handleCancel = () => {
     setEditingPoint(null);
-    setEditText('');
+    setEditText("");
   };
 
   const handleSaveStartDate = async () => {
@@ -82,10 +84,10 @@ function App() {
       });
       await loadData();
       setEditingStartDate(false);
-      alert('Стартовая дата обновлена!');
+      alert("Стартовая дата обновлена!");
     } catch (error) {
-      console.error('Ошибка сохранения:', error);
-      alert('Ошибка сохранения стартовой даты');
+      console.error("Ошибка сохранения:", error);
+      alert("Ошибка сохранения стартовой даты");
     }
   };
 
@@ -97,16 +99,16 @@ function App() {
       });
       await loadData();
       setEditingBanner(false);
-      alert('Настройки баннера обновлены!');
+      alert("Настройки баннера обновлены!");
     } catch (error) {
-      console.error('Ошибка сохранения:', error);
-      alert('Ошибка сохранения настроек баннера');
+      console.error("Ошибка сохранения:", error);
+      alert("Ошибка сохранения настроек баннера");
     }
   };
 
   const handleCancelBanner = () => {
     if (welcomeBanner) {
-      setBannerMessage(welcomeBanner.message || '');
+      setBannerMessage(welcomeBanner.message || "");
       setBannerEnabled(welcomeBanner.enabled !== false);
     }
     setEditingBanner(false);
@@ -125,7 +127,10 @@ function App() {
             <p>Текущая позиция: {gameState.currentPosition} / 90</p>
             <p>Всего ходов: {gameState.totalMoves}</p>
             {gameState.lastMoveDate && (
-              <p>Последний ход: {new Date(gameState.lastMoveDate).toLocaleString('ru-RU')}</p>
+              <p>
+                Последний ход:{" "}
+                {new Date(gameState.lastMoveDate).toLocaleString("ru-RU")}
+              </p>
             )}
             <div className="start-date-section">
               <label>Стартовая дата игры:</label>
@@ -141,7 +146,10 @@ function App() {
                     <button onClick={handleSaveStartDate} className="save-btn">
                       Сохранить
                     </button>
-                    <button onClick={() => setEditingStartDate(false)} className="cancel-btn">
+                    <button
+                      onClick={() => setEditingStartDate(false)}
+                      className="cancel-btn"
+                    >
                       Отмена
                     </button>
                   </div>
@@ -150,10 +158,13 @@ function App() {
                 <div className="date-display">
                   <span>
                     {gameState.startDate
-                      ? new Date(gameState.startDate).toLocaleString('ru-RU')
-                      : 'Не установлена'}
+                      ? new Date(gameState.startDate).toLocaleString("ru-RU")
+                      : "Не установлена"}
                   </span>
-                  <button onClick={() => setEditingStartDate(true)} className="edit-btn">
+                  <button
+                    onClick={() => setEditingStartDate(true)}
+                    className="edit-btn"
+                  >
                     Изменить
                   </button>
                 </div>
@@ -189,7 +200,10 @@ function App() {
                 </label>
                 {welcomeBanner.lastShownAt && (
                   <p className="last-shown">
-                    Последний показ: {new Date(welcomeBanner.lastShownAt).toLocaleString('ru-RU')}
+                    Последний показ:{" "}
+                    {new Date(welcomeBanner.lastShownAt).toLocaleString(
+                      "ru-RU"
+                    )}
                   </p>
                 )}
                 <div className="banner-buttons">
@@ -204,17 +218,29 @@ function App() {
             ) : (
               <div className="banner-display">
                 <div className="banner-status">
-                  <span className={bannerEnabled ? 'status-enabled' : 'status-disabled'}>
-                    {bannerEnabled ? '✅ Включен' : '❌ Выключен'}
+                  <span
+                    className={
+                      bannerEnabled ? "status-enabled" : "status-disabled"
+                    }
+                  >
+                    {bannerEnabled ? "✅ Включен" : "❌ Выключен"}
                   </span>
                 </div>
-                <p className="banner-message-preview">{welcomeBanner.message || 'Сообщение не задано'}</p>
+                <p className="banner-message-preview">
+                  {welcomeBanner.message || "Сообщение не задано"}
+                </p>
                 {welcomeBanner.lastShownAt && (
                   <p className="last-shown">
-                    Последний показ: {new Date(welcomeBanner.lastShownAt).toLocaleString('ru-RU')}
+                    Последний показ:{" "}
+                    {new Date(welcomeBanner.lastShownAt).toLocaleString(
+                      "ru-RU"
+                    )}
                   </p>
                 )}
-                <button onClick={() => setEditingBanner(true)} className="edit-btn">
+                <button
+                  onClick={() => setEditingBanner(true)}
+                  className="edit-btn"
+                >
                   Редактировать
                 </button>
               </div>
@@ -227,25 +253,32 @@ function App() {
         <h2>Сообщения для точек</h2>
         {gameState && gameState.reachablePositions && (
           <p className="points-info">
-            Отображаются только точки, которые будут посещены в течение игры ({gameState.reachablePositions.length} точек)
+            Отображаются только точки, которые будут посещены в течение игры (
+            {gameState.reachablePositions.length} точек)
           </p>
         )}
         <div className="messages-grid">
-          {(gameState?.reachablePositions || Array.from({ length: 90 }, (_, i) => i + 1)).map((pointIndex) => {
+          {(
+            gameState?.reachablePositions ||
+            Array.from({ length: 90 }, (_, i) => i + 1)
+          ).map((pointIndex) => {
             const message = messages.find((m) => m.pointIndex === pointIndex);
             const isEditing = editingPoint === pointIndex;
-            const isVisited = gameState && pointIndex < gameState.currentPosition;
+            const isVisited =
+              gameState && pointIndex < gameState.currentPosition;
 
             return (
               <div
                 key={pointIndex}
-                className={`message-card ${isVisited ? 'visited' : ''} ${
-                  pointIndex % 5 === 0 ? 'major-point' : ''
+                className={`message-card ${isVisited ? "visited" : ""} ${
+                  pointIndex % 5 === 0 ? "major-point" : ""
                 }`}
               >
                 <div className="point-header">
                   <span className="point-number">Точка {pointIndex}</span>
-                  {pointIndex % 5 === 0 && <span className="major-badge">⭐</span>}
+                  {pointIndex % 5 === 0 && (
+                    <span className="major-badge">⭐</span>
+                  )}
                 </div>
 
                 {isEditing ? (
@@ -257,7 +290,10 @@ function App() {
                       rows={4}
                     />
                     <div className="edit-buttons">
-                      <button onClick={() => handleSave(pointIndex)} className="save-btn">
+                      <button
+                        onClick={() => handleSave(pointIndex)}
+                        className="save-btn"
+                      >
                         Сохранить
                       </button>
                       <button onClick={handleCancel} className="cancel-btn">
@@ -267,9 +303,14 @@ function App() {
                   </div>
                 ) : (
                   <div className="message-content">
-                    <p>{message?.message || 'Сообщение не задано'}</p>
-                    <button onClick={() => handleEdit(message || { pointIndex, message: '' })} className="edit-btn">
-                      {message ? 'Изменить' : 'Добавить'}
+                    <p>{message?.message || "Сообщение не задано"}</p>
+                    <button
+                      onClick={() =>
+                        handleEdit(message || { pointIndex, message: "" })
+                      }
+                      className="edit-btn"
+                    >
+                      {message ? "Изменить" : "Добавить"}
                     </button>
                   </div>
                 )}
@@ -283,4 +324,3 @@ function App() {
 }
 
 export default App;
-
