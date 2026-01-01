@@ -107,52 +107,56 @@ export class GameService {
     return state;
   }
 
+  // Вспомогательная функция для получения строки текущей даты в формате YYYY-MM-DD в UTC
+  // Используем UTC время, чтобы работало одинаково для всех пользователей независимо от часового пояса
+  private getTodayDateStringUTC(): string {
+    const now = new Date();
+    // Используем UTC время для определения "сегодня"
+    const year = now.getUTCFullYear();
+    const month = String(now.getUTCMonth() + 1).padStart(2, "0");
+    const day = String(now.getUTCDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  }
+
+  // Извлекает дату из ISO строки в формате YYYY-MM-DD в UTC
+  private getDateStringFromISO(isoString: string): string {
+    const date = new Date(isoString);
+    // Используем UTC время
+    const year = date.getUTCFullYear();
+    const month = String(date.getUTCMonth() + 1).padStart(2, "0");
+    const day = String(date.getUTCDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  }
+
   async canMakeMove(): Promise<{ canMove: boolean; reason?: string }> {
     const state = await this.getGameState();
 
     // Проверка стартовой даты
     const startDateStr = state.startDate || DEFAULT_START_DATE;
-    const startDate = new Date(startDateStr);
-    const now = new Date();
+    const startDateOnly = this.getDateStringFromISO(startDateStr);
+    const todayStr = this.getTodayDateStringUTC();
 
-    // Нормализуем даты до начала дня в UTC (убираем время)
-    const startDay = new Date(
-      Date.UTC(
-        startDate.getUTCFullYear(),
-        startDate.getUTCMonth(),
-        startDate.getUTCDate()
-      )
-    );
-    const todayUTC = new Date(
-      Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate())
-    );
-
-    // Если стартовая дата уже прошла, разрешаем игру
     // Если стартовая дата еще не наступила, запрещаем
-    if (todayUTC.getTime() < startDay.getTime()) {
+
+    console.log(todayStr);
+    console.log(startDateOnly);
+
+    if (todayStr < startDateOnly) {
+      const startDate = new Date(startDateStr);
       return {
         canMove: false,
-        reason: `Игра начнется ${startDay.toLocaleDateString("ru-RU")}`,
+        reason: `Игра начнется ${startDate.toLocaleDateString("ru-RU")}`,
       };
     }
 
     // Проверка одного хода в день
     if (state.lastMoveDate) {
-      const lastMove = new Date(state.lastMoveDate);
-      // Нормализуем дату последнего хода до начала дня в UTC
-      const lastMoveDay = new Date(
-        Date.UTC(
-          lastMove.getUTCFullYear(),
-          lastMove.getUTCMonth(),
-          lastMove.getUTCDate()
-        )
-      );
-      // Нормализуем сегодняшнюю дату до начала дня в UTC
-      const todayUTC = new Date(
-        Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate())
-      );
+      const lastMoveDateOnly = this.getDateStringFromISO(state.lastMoveDate);
 
-      if (todayUTC.getTime() === lastMoveDay.getTime()) {
+      console.log(lastMoveDateOnly, "lastMoveDateOnly");
+
+      // Сравниваем строки дат напрямую (все в UTC)
+      if (todayStr === lastMoveDateOnly) {
         return { canMove: false, reason: "Уже был сделан ход сегодня" };
       }
     }
