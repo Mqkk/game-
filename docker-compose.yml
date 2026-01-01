@@ -6,7 +6,7 @@ services:
     ports:
       - "3000:3000"
     volumes:
-      - ./backend/game.db:/app/game.db
+      - ./backend/data:/app/data
     environment:
       - NODE_ENV=production
       - PORT=3000
@@ -14,7 +14,7 @@ services:
   admin:
     build: ./admin
     ports:
-      - "80:80"
+      - "91:80"
     depends_on:
       - backend
 
