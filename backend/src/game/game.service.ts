@@ -69,7 +69,7 @@ export class GameService {
             totalMoves: 0,
             lastMoveDate: null,
             startDate: DEFAULT_START_DATE,
-            completedSudokus: '[]',
+            completedSudokus: "[]",
           },
           ["id"]
         );
@@ -100,7 +100,7 @@ export class GameService {
 
     // Если completedSudokus не установлено, устанавливаем пустой массив
     if (!state.completedSudokus) {
-      state.completedSudokus = '[]';
+      state.completedSudokus = "[]";
       await this.gameStateRepository.save(state);
     }
 
@@ -114,7 +114,7 @@ export class GameService {
     const startDateStr = state.startDate || DEFAULT_START_DATE;
     const startDate = new Date(startDateStr);
     const now = new Date();
-    
+
     // Нормализуем даты до начала дня (убираем время)
     const startDay = new Date(
       startDate.getFullYear(),
@@ -155,7 +155,9 @@ export class GameService {
     const SUDOKU_DAYS = [5, 10, 15, 25, 30];
     const currentDay = state.totalMoves;
     if (SUDOKU_DAYS.includes(currentDay)) {
-      const completedSudokus = this.parseCompletedSudokus(state.completedSudokus);
+      const completedSudokus = this.parseCompletedSudokus(
+        state.completedSudokus
+      );
       if (!completedSudokus.includes(currentDay)) {
         return {
           canMove: false,
@@ -179,7 +181,7 @@ export class GameService {
   async completeSudoku(day: number): Promise<void> {
     const state = await this.getGameState();
     const completedSudokus = this.parseCompletedSudokus(state.completedSudokus);
-    
+
     if (!completedSudokus.includes(day)) {
       completedSudokus.push(day);
       state.completedSudokus = JSON.stringify(completedSudokus);
@@ -245,7 +247,7 @@ export class GameService {
   // Возвращает список позиций, которые будут посещены в течение всей игры
   getReachablePositions(currentPosition: number, totalMoves: number): number[] {
     const positions: number[] = [currentPosition]; // Текущая позиция уже посещена
-    
+
     let position = currentPosition;
     for (let i = totalMoves; i < DICE_SEQUENCE.length; i++) {
       const diceValue = DICE_SEQUENCE[i];
@@ -254,38 +256,42 @@ export class GameService {
         positions.push(position);
       }
     }
-    
+
     return positions.sort((a, b) => a - b);
   }
 
   async getWelcomeBanner() {
-    let banner = await this.welcomeBannerRepository.findOne({ where: { id: 1 } });
-    
+    let banner = await this.welcomeBannerRepository.findOne({
+      where: { id: 1 },
+    });
+
     if (!banner) {
       // Создаем баннер по умолчанию
       banner = this.welcomeBannerRepository.create({
         id: 1,
-        message: 'Добро пожаловать в игру!',
+        message: "Добро пожаловать в игру!",
         enabled: true,
         lastShownAt: null,
       });
       banner = await this.welcomeBannerRepository.save(banner);
     }
-    
+
     return banner;
   }
 
   async markBannerShown(): Promise<void> {
-    let banner = await this.welcomeBannerRepository.findOne({ where: { id: 1 } });
-    
+    let banner = await this.welcomeBannerRepository.findOne({
+      where: { id: 1 },
+    });
+
     if (!banner) {
       banner = this.welcomeBannerRepository.create({
         id: 1,
-        message: 'Добро пожаловать в игру!',
+        message: "Добро пожаловать в игру!",
         enabled: true,
       });
     }
-    
+
     banner.lastShownAt = new Date().toISOString();
     await this.welcomeBannerRepository.save(banner);
   }
