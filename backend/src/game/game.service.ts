@@ -115,17 +115,21 @@ export class GameService {
     const startDate = new Date(startDateStr);
     const now = new Date();
 
-    // Нормализуем даты до начала дня (убираем время)
+    // Нормализуем даты до начала дня в UTC (убираем время)
     const startDay = new Date(
-      startDate.getFullYear(),
-      startDate.getMonth(),
-      startDate.getDate()
+      Date.UTC(
+        startDate.getUTCFullYear(),
+        startDate.getUTCMonth(),
+        startDate.getUTCDate()
+      )
     );
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const todayUTC = new Date(
+      Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate())
+    );
 
     // Если стартовая дата уже прошла, разрешаем игру
     // Если стартовая дата еще не наступила, запрещаем
-    if (today.getTime() < startDay.getTime()) {
+    if (todayUTC.getTime() < startDay.getTime()) {
       return {
         canMove: false,
         reason: `Игра начнется ${startDay.toLocaleDateString("ru-RU")}`,
@@ -133,16 +137,22 @@ export class GameService {
     }
 
     // Проверка одного хода в день
-
     if (state.lastMoveDate) {
       const lastMove = new Date(state.lastMoveDate);
+      // Нормализуем дату последнего хода до начала дня в UTC
       const lastMoveDay = new Date(
-        lastMove.getFullYear(),
-        lastMove.getMonth(),
-        lastMove.getDate()
+        Date.UTC(
+          lastMove.getUTCFullYear(),
+          lastMove.getUTCMonth(),
+          lastMove.getUTCDate()
+        )
+      );
+      // Нормализуем сегодняшнюю дату до начала дня в UTC
+      const todayUTC = new Date(
+        Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate())
       );
 
-      if (today.getTime() === lastMoveDay.getTime()) {
+      if (todayUTC.getTime() === lastMoveDay.getTime()) {
         return { canMove: false, reason: "Уже был сделан ход сегодня" };
       }
     }
