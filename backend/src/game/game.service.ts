@@ -116,27 +116,15 @@ export class GameService {
     const now = new Date();
     
     // Нормализуем даты до начала дня (убираем время)
-    // Используем текущий год для стартовой даты, если она в прошлом году
-    const currentYear = now.getFullYear();
-    const startYear = startDate.getFullYear();
-    const effectiveStartYear = startYear < currentYear ? currentYear : startYear;
-    
     const startDay = new Date(
-      effectiveStartYear,
+      startDate.getFullYear(),
       startDate.getMonth(),
       startDate.getDate()
     );
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
-    // Логирование для отладки
-    console.log('Проверка стартовой даты:', {
-      startDate: startDateStr,
-      startDay: startDay.toISOString(),
-      today: today.toISOString(),
-      comparison: today.getTime() < startDay.getTime(),
-      effectiveStartYear,
-    });
-
+    // Если стартовая дата уже прошла, разрешаем игру
+    // Если стартовая дата еще не наступила, запрещаем
     if (today.getTime() < startDay.getTime()) {
       return {
         canMove: false,
