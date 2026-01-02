@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body } from "@nestjs/common";
+import { Controller, Get, Post, Body, Param } from "@nestjs/common";
 import { GameService } from "./game.service";
 
 @Controller("api/game")
@@ -23,6 +23,11 @@ export class GameController {
   @Get("messages")
   async getMessages() {
     return await this.gameService.getAllMessages();
+  }
+
+  @Get("messages/:pointIndex")
+  async getMessage(@Param("pointIndex") pointIndex: number) {
+    return await this.gameService.getPointMessage(Number(pointIndex));
   }
 
   @Post("complete-sudoku")

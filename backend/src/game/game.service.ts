@@ -136,11 +136,6 @@ export class GameService {
     const startDateOnly = this.getDateStringFromISO(startDateStr);
     const todayStr = this.getTodayDateStringUTC();
 
-    // Если стартовая дата еще не наступила, запрещаем
-
-    console.log(todayStr);
-    console.log(startDateOnly);
-
     if (todayStr < startDateOnly) {
       const startDate = new Date(startDateStr);
       return {
@@ -149,17 +144,15 @@ export class GameService {
       };
     }
 
-    // Проверка одного хода в день
-    if (state.lastMoveDate) {
-      const lastMoveDateOnly = this.getDateStringFromISO(state.lastMoveDate);
+    // // Проверка одного хода в день
+    // if (state.lastMoveDate) {
+    //   const lastMoveDateOnly = this.getDateStringFromISO(state.lastMoveDate);
 
-      console.log(lastMoveDateOnly, "lastMoveDateOnly");
-
-      // Сравниваем строки дат напрямую (все в UTC)
-      if (todayStr === lastMoveDateOnly) {
-        return { canMove: false, reason: "Уже был сделан ход сегодня" };
-      }
-    }
+    //   // Сравниваем строки дат напрямую (все в UTC)
+    //   if (todayStr === lastMoveDateOnly) {
+    //     return { canMove: false, reason: "Уже был сделан ход сегодня" };
+    //   }
+    // }
 
     if (state.currentPosition >= TOTAL_POINTS) {
       return { canMove: false, reason: "Игра завершена!" };
