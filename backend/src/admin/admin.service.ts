@@ -28,7 +28,8 @@ export class AdminService {
 
   async createOrUpdateMessage(
     pointIndex: number,
-    message: string
+    message: string,
+    imageUrl?: string
   ): Promise<PointMessage> {
     let pointMessage = await this.pointMessageRepository.findOne({
       where: { pointIndex },
@@ -36,11 +37,15 @@ export class AdminService {
 
     if (pointMessage) {
       pointMessage.message = message;
-      pointMessage.updatedAt = new Date();
+      if (imageUrl !== undefined) {
+        pointMessage.imageUrl = imageUrl || null;
+      }
+      // updatedAt обновляется автоматически через @UpdateDateColumn()
     } else {
       pointMessage = this.pointMessageRepository.create({
         pointIndex,
         message,
+        imageUrl: imageUrl || null,
       });
     }
 

@@ -259,6 +259,21 @@
   background: #5568d3;
 }
 
+.edit-form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.edit-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  color: #333;
+  font-weight: 600;
+  font-size: 0.9em;
+}
+
 .edit-form textarea {
   width: 100%;
   padding: 10px;
@@ -267,7 +282,49 @@
   font-family: inherit;
   font-size: 0.9em;
   resize: vertical;
+  margin-bottom: 0;
+}
+
+.edit-form input[type="url"] {
+  width: 100%;
+  padding: 8px;
+  border: 2px solid #ddd;
+  border-radius: 5px;
+  font-family: inherit;
+  font-size: 0.9em;
+}
+
+.image-preview {
+  margin-top: 10px;
+  padding: 10px;
+  background: #f0f0f0;
+  border-radius: 5px;
+  border: 1px solid #ddd;
+}
+
+.image-preview p {
+  margin: 0 0 10px 0;
+  color: #666;
+  font-size: 0.9em;
+  font-weight: 600;
+}
+
+.image-preview img {
+  max-width: 100%;
+  max-height: 200px;
+  border-radius: 5px;
+  border: 1px solid #ddd;
+}
+
+.message-image-preview {
   margin-bottom: 10px;
+}
+
+.message-image-preview img {
+  max-width: 100%;
+  max-height: 150px;
+  border-radius: 5px;
+  border: 1px solid #ddd;
 }
 
 .edit-buttons {

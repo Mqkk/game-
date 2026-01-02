@@ -16,21 +16,25 @@ export class AdminController {
   }
 
   @Post("messages")
-  async createMessage(@Body() body: { pointIndex: number; message: string }) {
+  async createMessage(
+    @Body() body: { pointIndex: number; message: string; imageUrl?: string }
+  ) {
     return await this.adminService.createOrUpdateMessage(
       body.pointIndex,
-      body.message
+      body.message,
+      body.imageUrl
     );
   }
 
   @Put("messages/:pointIndex")
   async updateMessage(
     @Param("pointIndex") pointIndex: number,
-    @Body() body: { message: string }
+    @Body() body: { message: string; imageUrl?: string }
   ) {
     return await this.adminService.createOrUpdateMessage(
       pointIndex,
-      body.message
+      body.message,
+      body.imageUrl
     );
   }
 

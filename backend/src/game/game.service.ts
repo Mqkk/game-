@@ -207,6 +207,7 @@ export class GameService {
     diceValue: number;
     newPosition: number;
     message?: string;
+    imageUrl?: string;
     isFinished: boolean;
   }> {
     const canMove = await this.canMakeMove();
@@ -242,6 +243,7 @@ export class GameService {
       diceValue,
       newPosition,
       message: message?.message || `Вы достигли точки ${newPosition}!`,
+      imageUrl: message?.imageUrl || undefined,
       isFinished,
     };
   }

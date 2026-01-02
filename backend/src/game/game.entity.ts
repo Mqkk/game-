@@ -3,6 +3,7 @@ import {
   PrimaryGeneratedColumn,
   Column,
   CreateDateColumn,
+  UpdateDateColumn,
 } from "typeorm";
 
 @Entity("game_state")
@@ -40,10 +41,13 @@ export class PointMessage {
   @Column({ type: "text", default: "" })
   message: string;
 
+  @Column({ type: "text", nullable: true })
+  imageUrl: string; // URL изображения для сообщения
+
   @CreateDateColumn()
   createdAt: Date;
 
-  @CreateDateColumn()
+  @UpdateDateColumn()
   updatedAt: Date;
 }
 
@@ -64,6 +68,6 @@ export class WelcomeBanner {
   @CreateDateColumn()
   createdAt: Date;
 
-  @CreateDateColumn()
+  @UpdateDateColumn()
   updatedAt: Date;
 }

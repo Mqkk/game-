@@ -2,13 +2,15 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import "./App.css";
 
-const API_URL = import.meta.env.VITE_API_URL || 'https://game-api.dev.datefrueet.ru';
+const API_URL =
+  import.meta.env.VITE_API_URL || "https://game-api.dev.datefrueet.ru";
 
 function App() {
   const [messages, setMessages] = useState([]);
   const [gameState, setGameState] = useState(null);
   const [editingPoint, setEditingPoint] = useState(null);
   const [editText, setEditText] = useState("");
+  const [editImageUrl, setEditImageUrl] = useState("");
   const [loading, setLoading] = useState(true);
   const [editingStartDate, setEditingStartDate] = useState(false);
   const [startDateValue, setStartDateValue] = useState("");
@@ -55,26 +57,42 @@ function App() {
   const handleEdit = (point) => {
     setEditingPoint(point.pointIndex);
     setEditText(point.message || "");
+    setEditImageUrl(point.imageUrl || "");
   };
 
   const handleSave = async (pointIndex) => {
     try {
-      await axios.post(`${API_URL}/api/admin/messages`, {
+      const payload = {
         pointIndex,
         message: editText,
-      });
+      };
+
+      // Отправляем imageUrl только если он не пустой
+      if (editImageUrl && editImageUrl.trim() !== "") {
+        payload.imageUrl = editImageUrl.trim();
+      } else {
+        payload.imageUrl = null;
+      }
+
+      await axios.post(`${API_URL}/api/admin/messages`, payload);
       await loadData();
       setEditingPoint(null);
       setEditText("");
+      setEditImageUrl("");
     } catch (error) {
       console.error("Ошибка сохранения:", error);
-      alert("Ошибка сохранения сообщения");
+      alert(
+        `Ошибка сохранения сообщения: ${
+          error.response?.data?.message || error.message
+        }`
+      );
     }
   };
 
   const handleCancel = () => {
     setEditingPoint(null);
     setEditText("");
+    setEditImageUrl("");
   };
 
   const handleSaveStartDate = async () => {
@@ -283,12 +301,40 @@ function App() {
 
                 {isEditing ? (
                   <div className="edit-form">
-                    <textarea
-                      value={editText}
-                      onChange={(e) => setEditText(e.target.value)}
-                      placeholder="Введите сообщение..."
-                      rows={4}
-                    />
+                    <label>
+                      Сообщение:
+                      <textarea
+                        value={editText}
+                        onChange={(e) => setEditText(e.target.value)}
+                        placeholder="Введите сообщение... Можно использовать ссылки (https://example.com) и изображения [image:https://example.com/image.jpg]"
+                        rows={4}
+                      />
+                    </label>
+                    <label>
+                      URL изображения (опционально):
+                      <input
+                        type="url"
+                        value={editImageUrl}
+                        onChange={(e) => setEditImageUrl(e.target.value)}
+                        placeholder="https://example.com/image.jpg"
+                      />
+                    </label>
+                    {editImageUrl && (
+                      <div className="image-preview">
+                        <p>Превью изображения:</p>
+                        <img
+                          src={editImageUrl}
+                          alt="Preview"
+                          onError={(e) => {
+                            e.target.style.display = "none";
+                            e.target.nextSibling.style.display = "block";
+                          }}
+                        />
+                        <p style={{ display: "none", color: "red" }}>
+                          Не удалось загрузить изображение
+                        </p>
+                      </div>
+                    )}
                     <div className="edit-buttons">
                       <button
                         onClick={() => handleSave(pointIndex)}
@@ -303,10 +349,23 @@ function App() {
                   </div>
                 ) : (
                   <div className="message-content">
+                    {message?.imageUrl && (
+                      <div className="message-image-preview">
+                        <img
+                          src={message.imageUrl}
+                          alt="Message"
+                          onError={(e) => {
+                            e.target.style.display = "none";
+                          }}
+                        />
+                      </div>
+                    )}
                     <p>{message?.message || "Сообщение не задано"}</p>
                     <button
                       onClick={() =>
-                        handleEdit(message || { pointIndex, message: "" })
+                        handleEdit(
+                          message || { pointIndex, message: "", imageUrl: "" }
+                        )
                       }
                       className="edit-btn"
                     >
