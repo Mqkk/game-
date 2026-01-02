@@ -3,6 +3,7 @@ version: '3.8'
 services:
   backend:
     build: ./backend
+    restart: always
     ports:
       - "3000:3000"
     volumes:
@@ -12,6 +13,7 @@ services:
       - PORT=3000
 
   admin:
+    restart: always
     build: ./admin
     ports:
       - "91:80"
