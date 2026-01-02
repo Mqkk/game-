@@ -47,4 +47,21 @@ export class GameController {
     await this.gameService.markBannerShown();
     return { success: true };
   }
+
+  @Get("questions/:pointIndex")
+  async getQuestion(@Param("pointIndex") pointIndex: number) {
+    return await this.gameService.getPointQuestion(Number(pointIndex));
+  }
+
+  @Post("questions/:pointIndex/check")
+  async checkAnswer(
+    @Param("pointIndex") pointIndex: number,
+    @Body() body: { answer: string }
+  ) {
+    const isCorrect = await this.gameService.checkQuestionAnswer(
+      Number(pointIndex),
+      body.answer
+    );
+    return { correct: isCorrect };
+  }
 }

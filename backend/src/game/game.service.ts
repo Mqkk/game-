@@ -1,7 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
-import { GameState, PointMessage, WelcomeBanner } from "./game.entity";
+import { GameState, PointMessage, WelcomeBanner, PointQuestion } from "./game.entity";
 
 // Предрассчитанная последовательность кубика (сумма = 90, 34 хода)
 // Рассчитано так, чтобы ровно 2 февраля достичь финиша
@@ -53,7 +53,9 @@ export class GameService {
     @InjectRepository(PointMessage)
     private pointMessageRepository: Repository<PointMessage>,
     @InjectRepository(WelcomeBanner)
-    private welcomeBannerRepository: Repository<WelcomeBanner>
+    private welcomeBannerRepository: Repository<WelcomeBanner>,
+    @InjectRepository(PointQuestion)
+    private pointQuestionRepository: Repository<PointQuestion>
   ) {}
 
   async getGameState() {
@@ -144,15 +146,15 @@ export class GameService {
       };
     }
 
-    // // Проверка одного хода в день
-    // if (state.lastMoveDate) {
-    //   const lastMoveDateOnly = this.getDateStringFromISO(state.lastMoveDate);
+    // Проверка одного хода в день
+  if (state.lastMoveDate) {
+      const lastMoveDateOnly = this.getDateStringFromISO(state.lastMoveDate);
 
-    //   // Сравниваем строки дат напрямую (все в UTC)
-    //   if (todayStr === lastMoveDateOnly) {
-    //     return { canMove: false, reason: "Уже был сделан ход сегодня" };
-    //   }
-    // }
+      // Сравниваем строки дат напрямую (все в UTC)
+      if (todayStr === lastMoveDateOnly) {
+        return { canMove: false, reason: "Уже был сделан ход сегодня" };
+      }
+    }  
 
     if (state.currentPosition >= TOTAL_POINTS) {
       return { canMove: false, reason: "Игра завершена!" };
@@ -201,6 +203,7 @@ export class GameService {
     newPosition: number;
     message?: string;
     imageUrl?: string;
+    question?: string;
     isFinished: boolean;
   }> {
     const canMove = await this.canMakeMove();
@@ -229,6 +232,12 @@ export class GameService {
 
     // Получаем сообщение для точки
     const message = await this.getPointMessage(newPosition);
+    
+    // Получаем вопрос для точки (если нужно)
+    // Начиная с 4-го дня, кроме дней с судоку
+    const SUDOKU_DAYS = [5, 10, 15, 25, 30];
+    const needsQuestion = state.totalMoves >= 4 && !SUDOKU_DAYS.includes(state.totalMoves);
+    const question = needsQuestion ? await this.getPointQuestion(newPosition) : null;
 
     const isFinished = newPosition >= TOTAL_POINTS;
 
@@ -237,8 +246,22 @@ export class GameService {
       newPosition,
       message: message?.message || `Вы достигли точки ${newPosition}!`,
       imageUrl: message?.imageUrl || undefined,
+      question: question?.question || undefined,
       isFinished,
     };
+  }
+
+  async getPointQuestion(pointIndex: number): Promise<PointQuestion | null> {
+    return await this.pointQuestionRepository.findOne({
+      where: { pointIndex },
+    });
+  }
+
+  async checkQuestionAnswer(pointIndex: number, answer: string): Promise<boolean> {
+    const question = await this.getPointQuestion(pointIndex);
+    if (!question) return false;
+    // Сравниваем ответы без учета регистра и пробелов
+    return question.answer.trim().toLowerCase() === answer.trim().toLowerCase();
   }
 
   async getPointMessage(pointIndex: number): Promise<PointMessage | null> {

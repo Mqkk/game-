@@ -7,10 +7,13 @@ const API_URL =
 
 function App() {
   const [messages, setMessages] = useState([]);
+  const [questions, setQuestions] = useState([]);
   const [gameState, setGameState] = useState(null);
   const [editingPoint, setEditingPoint] = useState(null);
   const [editText, setEditText] = useState("");
   const [editImageUrl, setEditImageUrl] = useState("");
+  const [editQuestion, setEditQuestion] = useState("");
+  const [editAnswer, setEditAnswer] = useState("");
   const [loading, setLoading] = useState(true);
   const [editingStartDate, setEditingStartDate] = useState(false);
   const [startDateValue, setStartDateValue] = useState("");
@@ -25,14 +28,17 @@ function App() {
 
   const loadData = async () => {
     try {
-      const [messagesRes, stateRes, bannerRes] = await Promise.all([
+      const [messagesRes, questionsRes, stateRes, bannerRes] = await Promise.all([
         axios.get(`${API_URL}/api/admin/messages`),
+        axios.get(`${API_URL}/api/admin/questions`),
         axios.get(`${API_URL}/api/admin/game-state`),
         axios.get(`${API_URL}/api/admin/welcome-banner`),
       ]);
       setMessages(messagesRes.data);
+      setQuestions(questionsRes.data);
       setGameState(stateRes.data);
       setWelcomeBanner(bannerRes.data);
+      
 
       if (stateRes.data?.startDate) {
         // Преобразуем дату в формат для input[type="datetime-local"]
@@ -58,6 +64,9 @@ function App() {
     setEditingPoint(point.pointIndex);
     setEditText(point.message || "");
     setEditImageUrl(point.imageUrl || "");
+    const question = questions.find((q) => q.pointIndex === point.pointIndex);
+    setEditQuestion(question?.question || "");
+    setEditAnswer(question?.answer || "");
   };
 
   const handleSave = async (pointIndex) => {
@@ -75,10 +84,26 @@ function App() {
       }
 
       await axios.post(`${API_URL}/api/admin/messages`, payload);
+      
+      // Сохраняем вопрос, если он указан
+      const dayForPoint = gameState?.positionToDay?.[pointIndex];
+      const SUDOKU_DAYS = [5, 10, 15, 25, 30];
+      const needsQuestion = dayForPoint && dayForPoint >= 4 && !SUDOKU_DAYS.includes(dayForPoint);
+      
+      if (needsQuestion && editQuestion.trim() && editAnswer.trim()) {
+        await axios.post(`${API_URL}/api/admin/questions`, {
+          pointIndex,
+          question: editQuestion.trim(),
+          answer: editAnswer.trim(),
+        });
+      }
+      
       await loadData();
       setEditingPoint(null);
       setEditText("");
       setEditImageUrl("");
+      setEditQuestion("");
+      setEditAnswer("");
     } catch (error) {
       console.error("Ошибка сохранения:", error);
       alert(
@@ -93,6 +118,8 @@ function App() {
     setEditingPoint(null);
     setEditText("");
     setEditImageUrl("");
+    setEditQuestion("");
+    setEditAnswer("");
   };
 
   const handleSaveStartDate = async () => {
@@ -276,14 +303,58 @@ function App() {
           </p>
         )}
         <div className="messages-grid">
-          {(
-            gameState?.reachablePositions ||
-            Array.from({ length: 90 }, (_, i) => i + 1)
-          ).map((pointIndex) => {
+          {(() => {
+            // Формируем список всех точек для отображения
+            // Включаем только те точки, на которые реально вставал пользователь
+            const allPoints = new Set();
+            
+            // Последовательность кубика (та же, что на бэкенде)
+            const DICE_SEQUENCE = [
+              3, 1, 2, 2, 1, 5, 3, 2, 1, 4, 2, 1, 6, 1, 2, 3, 5, 1, 2, 3, 1, 6, 1, 5, 2,
+              1, 3, 1, 5, 2, 2, 3, 4, 4,
+            ];
+            const TOTAL_POINTS = 90;
+            
+            // Пересчитываем все позиции, на которые реально вставал пользователь
+            const visitedPositions = new Set();
+            if (gameState?.totalMoves !== undefined && gameState.totalMoves > 0) {
+              let position = 0;
+              visitedPositions.add(0); // Начальная позиция
+              
+              // Проходим по всем сделанным ходам
+              for (let i = 0; i < gameState.totalMoves && i < DICE_SEQUENCE.length; i++) {
+                const diceValue = DICE_SEQUENCE[i];
+                position = Math.min(position + diceValue, TOTAL_POINTS);
+                visitedPositions.add(position);
+              }
+            } else if (gameState?.currentPosition !== undefined) {
+              // Если totalMoves = 0, но есть currentPosition, добавляем только начальную позицию
+              visitedPositions.add(0);
+            }
+            
+            // Добавляем все пройденные позиции в список для отображения
+            visitedPositions.forEach(p => allPoints.add(p));
+            
+            // Добавляем все достижимые точки (будущие) из reachablePositions
+            if (gameState?.reachablePositions) {
+              gameState.reachablePositions.forEach(p => allPoints.add(p));
+            }
+            
+            // Если нет данных, используем все 90 точек
+            const pointsToShow = allPoints.size > 0 
+              ? Array.from(allPoints).sort((a, b) => a - b)
+              : Array.from({ length: 90 }, (_, i) => i);
+            
+            return pointsToShow.map((pointIndex) => {
             const message = messages.find((m) => m.pointIndex === pointIndex);
+            const question = questions.find((q) => q.pointIndex === pointIndex);
             const isEditing = editingPoint === pointIndex;
-            const isVisited =
-              gameState && pointIndex < gameState.currentPosition;
+            // Точка считается пройденной, если она есть в списке реально посещенных позиций
+            const isVisited = visitedPositions.has(pointIndex);
+            // Проверяем, нужен ли вопрос для этой точки (начиная с 4 дня, кроме дней с судоку)
+            const dayForPoint = gameState?.positionToDay?.[pointIndex];
+            const SUDOKU_DAYS = [5, 10, 15, 25, 30];
+            const needsQuestion = dayForPoint && dayForPoint >= 4 && !SUDOKU_DAYS.includes(dayForPoint);
 
             return (
               <div
@@ -335,6 +406,28 @@ function App() {
                         </p>
                       </div>
                     )}
+                    {needsQuestion && (
+                      <>
+                        <label>
+                          Вопрос (обязательно для дней начиная с 4, кроме дней с судоку):
+                          <textarea
+                            value={editQuestion}
+                            onChange={(e) => setEditQuestion(e.target.value)}
+                            placeholder="Введите вопрос..."
+                            rows={3}
+                          />
+                        </label>
+                        <label>
+                          Правильный ответ:
+                          <input
+                            type="text"
+                            value={editAnswer}
+                            onChange={(e) => setEditAnswer(e.target.value)}
+                            placeholder="Введите правильный ответ..."
+                          />
+                        </label>
+                      </>
+                    )}
                     <div className="edit-buttons">
                       <button
                         onClick={() => handleSave(pointIndex)}
@@ -361,6 +454,15 @@ function App() {
                       </div>
                     )}
                     <p>{message?.message || "Сообщение не задано"}</p>
+                    {question && (
+                      <div className="question-preview">
+                        <p><strong>❓ Вопрос:</strong> {question.question}</p>
+                        <p><strong>✅ Ответ:</strong> {question.answer}</p>
+                      </div>
+                    )}
+                    {needsQuestion && !question && (
+                      <p className="question-warning">⚠️ Вопрос не задан (обязательно для этой точки)</p>
+                    )}
                     <button
                       onClick={() =>
                         handleEdit(
@@ -375,7 +477,8 @@ function App() {
                 )}
               </div>
             );
-          })}
+            });
+          })()}
         </div>
       </div>
     </div>

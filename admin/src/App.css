@@ -213,7 +213,39 @@
 
 .message-card.visited {
   border-color: #4caf50;
-  background: #e8f5e9;
+  background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+  opacity: 0.9;
+  position: relative;
+  border-width: 2px;
+}
+
+.message-card.visited::before {
+  content: "✓ Пройдено";
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: #4caf50;
+  color: white;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 0.7em;
+  font-weight: 600;
+  z-index: 1;
+  box-shadow: 0 2px 4px rgba(76, 175, 80, 0.3);
+}
+
+.message-card.visited .point-number {
+  color: #2e7d32;
+  font-weight: 600;
+}
+
+.message-card.visited .message-content {
+  opacity: 0.9;
+}
+
+.message-card.visited .point-number {
+  text-decoration: line-through;
+  color: #666;
 }
 
 .message-card.major-point {
@@ -365,5 +397,37 @@
   padding: 50px;
   font-size: 1.5em;
   color: white;
+}
+
+.question-preview {
+  margin-top: 15px;
+  padding: 12px;
+  background: #E3F2FD;
+  border-radius: 8px;
+  border-left: 4px solid #2196F3;
+  box-shadow: 0 2px 4px rgba(33, 150, 243, 0.1);
+}
+
+.question-preview p {
+  margin: 8px 0;
+  color: #1976D2;
+  font-size: 0.95em;
+  line-height: 1.5;
+}
+
+.question-preview p strong {
+  color: #0D47A1;
+  font-weight: 600;
+}
+
+.question-warning {
+  margin-top: 10px;
+  padding: 8px;
+  background: #FFF3E0;
+  border-radius: 5px;
+  border-left: 3px solid #FF9800;
+  color: #E65100;
+  font-size: 0.9em;
+  font-weight: 600;
 }
 

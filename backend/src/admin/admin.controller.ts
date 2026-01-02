@@ -62,4 +62,37 @@ export class AdminController {
       body.enabled
     );
   }
+
+  @Get("questions")
+  async getAllQuestions() {
+    return await this.adminService.getAllQuestions();
+  }
+
+  @Get("questions/:pointIndex")
+  async getQuestion(@Param("pointIndex") pointIndex: number) {
+    return await this.adminService.getQuestion(Number(pointIndex));
+  }
+
+  @Post("questions")
+  async createQuestion(
+    @Body() body: { pointIndex: number; question: string; answer: string }
+  ) {
+    return await this.adminService.createOrUpdateQuestion(
+      body.pointIndex,
+      body.question,
+      body.answer
+    );
+  }
+
+  @Put("questions/:pointIndex")
+  async updateQuestion(
+    @Param("pointIndex") pointIndex: number,
+    @Body() body: { question: string; answer: string }
+  ) {
+    return await this.adminService.createOrUpdateQuestion(
+      Number(pointIndex),
+      body.question,
+      body.answer
+    );
+  }
 }

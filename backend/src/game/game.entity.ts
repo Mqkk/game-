@@ -71,3 +71,24 @@ export class WelcomeBanner {
   @UpdateDateColumn()
   updatedAt: Date;
 }
+
+@Entity("point_questions")
+export class PointQuestion {
+  @PrimaryGeneratedColumn()
+  id: number;
+
+  @Column()
+  pointIndex: number;
+
+  @Column({ type: "text", default: "" })
+  question: string; // Вопрос для точки
+
+  @Column({ type: "text", default: "" })
+  answer: string; // Правильный ответ на вопрос
+
+  @CreateDateColumn()
+  createdAt: Date;
+
+  @UpdateDateColumn()
+  updatedAt: Date;
+}

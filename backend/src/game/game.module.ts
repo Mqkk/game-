@@ -2,10 +2,10 @@ import { Module } from "@nestjs/common";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { GameController } from "./game.controller";
 import { GameService } from "./game.service";
-import { GameState, PointMessage, WelcomeBanner } from "./game.entity";
+import { GameState, PointMessage, WelcomeBanner, PointQuestion } from "./game.entity";
 
 @Module({
-  imports: [TypeOrmModule.forFeature([GameState, PointMessage, WelcomeBanner])],
+  imports: [TypeOrmModule.forFeature([GameState, PointMessage, WelcomeBanner, PointQuestion])],
   controllers: [GameController],
   providers: [GameService],
 })
