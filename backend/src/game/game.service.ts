@@ -161,14 +161,14 @@ export class GameService {
     }
 
     // Проверка одного хода в день
-    // if (state.lastMoveDate) {
-    //     const lastMoveDateOnly = this.getDateStringFromISO(state.lastMoveDate);
+    if (state.lastMoveDate) {
+      const lastMoveDateOnly = this.getDateStringFromISO(state.lastMoveDate);
 
-    //     // Сравниваем строки дат напрямую (все в UTC)
-    //     if (todayStr === lastMoveDateOnly) {
-    //       return { canMove: false, reason: "Уже был сделан ход сегодня" };
-    //     }
-    //   }
+      // Сравниваем строки дат напрямую (все в UTC)
+      if (todayStr === lastMoveDateOnly) {
+        return { canMove: false, reason: "Уже был сделан ход сегодня" };
+      }
+    }
 
     if (state.currentPosition >= TOTAL_POINTS) {
       return { canMove: false, reason: "Игра завершена!" };
