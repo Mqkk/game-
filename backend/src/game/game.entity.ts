@@ -26,6 +26,9 @@ export class GameState {
   @Column({ type: "text", nullable: true, default: "[]" })
   completedSudokus: string; // JSON массив номеров больших точек, для которых пройдено судоку
 
+  @Column({ type: "text", nullable: true, default: "[]" })
+  answeredQuestions: string; // JSON массив номеров точек, для которых дан правильный ответ на вопрос
+
   @CreateDateColumn()
   createdAt: Date;
 }

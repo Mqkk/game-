@@ -64,4 +64,20 @@ export class GameController {
     );
     return { correct: isCorrect };
   }
+
+  @Get("questions/:pointIndex/answered")
+  async isQuestionAnswered(@Param("pointIndex") pointIndex: number) {
+    const answered = await this.gameService.isQuestionAnswered(
+      Number(pointIndex)
+    );
+    return { answered };
+  }
+
+  @Get("questions/:pointIndex/needed")
+  async needsQuestion(@Param("pointIndex") pointIndex: number) {
+    const needed = await this.gameService.needsQuestionForPosition(
+      Number(pointIndex)
+    );
+    return { needed };
+  }
 }

@@ -1,7 +1,12 @@
 import { Injectable } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
-import { GameState, PointMessage, WelcomeBanner, PointQuestion } from "./game.entity";
+import {
+  GameState,
+  PointMessage,
+  WelcomeBanner,
+  PointQuestion,
+} from "./game.entity";
 
 // Предрассчитанная последовательность кубика (сумма = 90, 34 хода)
 // Рассчитано так, чтобы ровно 2 февраля достичь финиша
@@ -72,6 +77,7 @@ export class GameService {
             lastMoveDate: null,
             startDate: DEFAULT_START_DATE,
             completedSudokus: "[]",
+            answeredQuestions: "[]",
           },
           ["id"]
         );
@@ -83,6 +89,8 @@ export class GameService {
           totalMoves: 0,
           lastMoveDate: null,
           startDate: DEFAULT_START_DATE,
+          completedSudokus: "[]",
+          answeredQuestions: "[]",
         });
         state = await this.gameStateRepository.save(state);
         // Если id не равен 1, обновляем его (только для SQLite)
@@ -103,6 +111,12 @@ export class GameService {
     // Если completedSudokus не установлено, устанавливаем пустой массив
     if (!state.completedSudokus) {
       state.completedSudokus = "[]";
+      await this.gameStateRepository.save(state);
+    }
+
+    // Если answeredQuestions не установлено, устанавливаем пустой массив
+    if (!state.answeredQuestions) {
+      state.answeredQuestions = "[]";
       await this.gameStateRepository.save(state);
     }
 
@@ -147,14 +161,14 @@ export class GameService {
     }
 
     // Проверка одного хода в день
-  if (state.lastMoveDate) {
-      const lastMoveDateOnly = this.getDateStringFromISO(state.lastMoveDate);
+    // if (state.lastMoveDate) {
+    //     const lastMoveDateOnly = this.getDateStringFromISO(state.lastMoveDate);
 
-      // Сравниваем строки дат напрямую (все в UTC)
-      if (todayStr === lastMoveDateOnly) {
-        return { canMove: false, reason: "Уже был сделан ход сегодня" };
-      }
-    }  
+    //     // Сравниваем строки дат напрямую (все в UTC)
+    //     if (todayStr === lastMoveDateOnly) {
+    //       return { canMove: false, reason: "Уже был сделан ход сегодня" };
+    //     }
+    //   }
 
     if (state.currentPosition >= TOTAL_POINTS) {
       return { canMove: false, reason: "Игра завершена!" };
@@ -182,6 +196,17 @@ export class GameService {
     if (!completedSudokusStr) return [];
     try {
       return JSON.parse(completedSudokusStr);
+    } catch {
+      return [];
+    }
+  }
+
+  private parseAnsweredQuestions(
+    answeredQuestionsStr: string | null
+  ): number[] {
+    if (!answeredQuestionsStr) return [];
+    try {
+      return JSON.parse(answeredQuestionsStr);
     } catch {
       return [];
     }
@@ -232,12 +257,15 @@ export class GameService {
 
     // Получаем сообщение для точки
     const message = await this.getPointMessage(newPosition);
-    
+
     // Получаем вопрос для точки (если нужно)
     // Начиная с 4-го дня, кроме дней с судоку
     const SUDOKU_DAYS = [5, 10, 15, 25, 30];
-    const needsQuestion = state.totalMoves >= 4 && !SUDOKU_DAYS.includes(state.totalMoves);
-    const question = needsQuestion ? await this.getPointQuestion(newPosition) : null;
+    const needsQuestion =
+      state.totalMoves >= 4 && !SUDOKU_DAYS.includes(state.totalMoves);
+    const question = needsQuestion
+      ? await this.getPointQuestion(newPosition)
+      : null;
 
     const isFinished = newPosition >= TOTAL_POINTS;
 
@@ -257,11 +285,53 @@ export class GameService {
     });
   }
 
-  async checkQuestionAnswer(pointIndex: number, answer: string): Promise<boolean> {
+  async checkQuestionAnswer(
+    pointIndex: number,
+    answer: string
+  ): Promise<boolean> {
     const question = await this.getPointQuestion(pointIndex);
     if (!question) return false;
     // Сравниваем ответы без учета регистра и пробелов
-    return question.answer.trim().toLowerCase() === answer.trim().toLowerCase();
+    const isCorrect =
+      question.answer.trim().toLowerCase() === answer.trim().toLowerCase();
+
+    // Если ответ правильный, сохраняем это в состоянии игры
+    if (isCorrect) {
+      await this.markQuestionAnswered(pointIndex);
+    }
+
+    return isCorrect;
+  }
+
+  async markQuestionAnswered(pointIndex: number): Promise<void> {
+    const state = await this.getGameState();
+    const answeredQuestions = this.parseAnsweredQuestions(
+      state.answeredQuestions
+    );
+
+    if (!answeredQuestions.includes(pointIndex)) {
+      answeredQuestions.push(pointIndex);
+      state.answeredQuestions = JSON.stringify(answeredQuestions);
+      await this.gameStateRepository.save(state);
+    }
+  }
+
+  async isQuestionAnswered(pointIndex: number): Promise<boolean> {
+    const state = await this.getGameState();
+    const answeredQuestions = this.parseAnsweredQuestions(
+      state.answeredQuestions
+    );
+    return answeredQuestions.includes(pointIndex);
+  }
+
+  async needsQuestionForPosition(pointIndex: number): Promise<boolean> {
+    // Проверяем, есть ли вопрос для этой точки
+    const question = await this.getPointQuestion(pointIndex);
+    if (!question) return false;
+
+    // Проверяем, отвечен ли уже вопрос
+    const answered = await this.isQuestionAnswered(pointIndex);
+    return !answered;
   }
 
   async getPointMessage(pointIndex: number): Promise<PointMessage | null> {
