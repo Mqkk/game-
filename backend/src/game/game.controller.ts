@@ -80,4 +80,9 @@ export class GameController {
     );
     return { needed };
   }
+
+  @Get("history")
+  async getHistory() {
+    return await this.gameService.getHistory();
+  }
 }

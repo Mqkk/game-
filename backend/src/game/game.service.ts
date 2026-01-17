@@ -397,4 +397,75 @@ export class GameService {
     banner.lastShownAt = new Date().toISOString();
     await this.welcomeBannerRepository.save(banner);
   }
+
+  // Возвращает историю посещенных дней с сообщениями, вопросами и ответами
+  async getHistory(): Promise<
+    Array<{
+      pointIndex: number;
+      day: number; // Номер дня, когда была посещена эта точка
+      message: string | null;
+      imageUrl: string | null;
+      question: string | null;
+      answer: string | null; // Правильный ответ (показываем только если вопрос был отвечен)
+      hasAnsweredQuestion: boolean;
+    }>
+  > {
+    const state = await this.getGameState();
+    const currentPosition = Number(state.currentPosition) || 0;
+    const totalMoves = Number(state.totalMoves) || 0;
+    const answeredQuestions = this.parseAnsweredQuestions(
+      state.answeredQuestions
+    );
+
+    // Вычисляем, какая точка была посещена в какой день
+    // Для этого проходим по последовательности ходов и восстанавливаем историю
+    const history: Array<{
+      pointIndex: number;
+      day: number;
+    }> = [];
+
+    // Добавляем стартовую позицию (день 0)
+    let position = 0;
+    history.push({ pointIndex: 0, day: 0 });
+
+    // Проходим по всем сделанным ходам
+    for (let day = 0; day < totalMoves; day++) {
+      if (day < DICE_SEQUENCE.length) {
+        const diceValue = DICE_SEQUENCE[day];
+        position = Math.min(position + diceValue, TOTAL_POINTS);
+        // Добавляем только если еще не добавили эту точку
+        if (!history.find((h) => h.pointIndex === position)) {
+          history.push({ pointIndex: position, day: day + 1 });
+        } else {
+          // Если точка уже была посещена, обновляем день на более поздний
+          const existing = history.find((h) => h.pointIndex === position);
+          if (existing) {
+            existing.day = day + 1;
+          }
+        }
+      }
+    }
+
+    // Получаем информацию для каждой точки в истории
+    const historyWithDetails = await Promise.all(
+      history.map(async ({ pointIndex, day }) => {
+        const message = await this.getPointMessage(pointIndex);
+        const question = await this.getPointQuestion(pointIndex);
+        const hasAnsweredQuestion = answeredQuestions.includes(pointIndex);
+
+        return {
+          pointIndex,
+          day,
+          message: message?.message || null,
+          imageUrl: message?.imageUrl || null,
+          question: question?.question || null,
+          answer: hasAnsweredQuestion && question ? question.answer : null,
+          hasAnsweredQuestion,
+        };
+      })
+    );
+
+    // Сортируем по дню (от старых к новым)
+    return historyWithDetails.sort((a, b) => a.day - b.day);
+  }
 }
