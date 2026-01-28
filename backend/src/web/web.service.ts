@@ -5,10 +5,12 @@ import {
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
-import { WebCard, WebConfig } from "./web.entity";
-import { hashPassword, issueToken, verifyPassword } from "./web-auth";
+import { WebCard, WebCardState, WebConfig } from "./web.entity";
+import { hashPassword, issueToken, tokenKey, verifyPassword } from "./web-auth";
 
 const PASSWORD_KEY = "passwordHash";
+const HOME_TITLE_KEY = "homeTitle";
+const HOME_DESC_KEY = "homeDescription";
 
 @Injectable()
 export class WebService {
@@ -16,7 +18,9 @@ export class WebService {
     @InjectRepository(WebCard)
     private cardsRepo: Repository<WebCard>,
     @InjectRepository(WebConfig)
-    private configRepo: Repository<WebConfig>
+    private configRepo: Repository<WebConfig>,
+    @InjectRepository(WebCardState)
+    private cardStateRepo: Repository<WebCardState>
   ) {}
 
   async login(password: string): Promise<{ token: string }> {
@@ -31,11 +35,61 @@ export class WebService {
     return { token: issueToken() };
   }
 
-  async getCards(): Promise<WebCard[]> {
-    return await this.cardsRepo.find({
+  async getCardsForToken(
+    webToken: string
+  ): Promise<Array<WebCard & { state: 0 | 1 | 2 }>> {
+    const cards = await this.cardsRepo.find({
       where: { enabled: true },
       order: { order: "ASC", id: "ASC" },
     });
+
+    const tKey = tokenKey(webToken);
+    const states = await this.cardStateRepo.find({ where: { tokenKey: tKey } });
+    const stateMap = new Map<number, 0 | 1 | 2>();
+    for (const s of states) {
+      const v = s.state;
+      if (v === 1 || v === 2 || v === 0) stateMap.set(s.cardId, v);
+    }
+
+    return cards.map((c) => ({ ...c, state: stateMap.get(c.id) ?? 0 }));
+  }
+
+  async getHomeForToken(webToken: string): Promise<{
+    title: string;
+    description: string;
+    cards: Array<WebCard & { state: 0 | 1 | 2 }>;
+  }> {
+    const [title, description, cards] = await Promise.all([
+      this.getConfigValue(HOME_TITLE_KEY, "Коллекция карточек"),
+      this.getConfigValue(
+        HOME_DESC_KEY,
+        "Для активации необходимо нажать на карточку"
+      ),
+      this.getCardsForToken(webToken),
+    ]);
+    return { title, description, cards };
+  }
+
+  async setCardStateForToken(
+    webToken: string,
+    cardId: number,
+    state: 0 | 1 | 2
+  ): Promise<{ success: true }> {
+    const tKey = tokenKey(webToken);
+    const existing = await this.cardStateRepo.findOne({
+      where: { tokenKey: tKey, cardId },
+    });
+
+    if (existing) {
+      existing.state = state;
+      await this.cardStateRepo.save(existing);
+      return { success: true };
+    }
+
+    await this.cardStateRepo.save(
+      this.cardStateRepo.create({ tokenKey: tKey, cardId, state })
+    );
+    return { success: true };
   }
 
   async adminListCards(): Promise<WebCard[]> {
@@ -106,5 +160,12 @@ export class WebService {
     }
     const created = this.configRepo.create({ key, value });
     return await this.configRepo.save(created);
+  }
+
+  private async getConfigValue(key: string, fallback: string): Promise<string> {
+    const row = await this.configRepo.findOne({ where: { key } });
+    if (!row) return fallback;
+    const v = (row.value || "").trim();
+    return v ? v : fallback;
   }
 }

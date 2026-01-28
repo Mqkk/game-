@@ -10,13 +10,13 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Game+",
+  title: "ForYou",
   description: "PWA",
-  applicationName: "Game+",
+  applicationName: "ForYou",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "Game+",
+    title: "ForYou",
   },
 };
 

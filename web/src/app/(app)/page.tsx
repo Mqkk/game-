@@ -15,10 +15,8 @@ export default observer(function HomePage() {
 
   return (
     <div className={styles.page}>
-      <h1 className={styles.title}>Коллекция карточек</h1>
-      <p className={styles.subtitle}>
-        Для активации необходимо нажать на карточку
-      </p>
+      <h1 className={styles.title}>{cards.pageTitle}</h1>
+      <p className={styles.subtitle}>{cards.pageDescription}</p>
 
       {cards.loading && <div className={styles.state}>Загрузка…</div>}
       {cards.error && <div className={styles.stateError}>⚠️ {cards.error}</div>}
@@ -29,8 +27,10 @@ export default observer(function HomePage() {
           .map((item) => (
             <FlipCard
               key={item.id}
+              step={item.state ?? 0}
               text={item.text}
               imageUrl={item.imageUrl || undefined}
+              onStepChange={(next) => void cards.setState(item.id, next)}
             />
           ))}
       </div>

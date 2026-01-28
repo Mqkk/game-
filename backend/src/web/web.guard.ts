@@ -10,6 +10,8 @@ export class WebAuthGuard implements CanActivate {
     const m = header.match(/^Bearer\s+(.+)$/i);
     if (!m) return false;
     const token = m[1];
-    return verifyToken(token);
+    const ok = verifyToken(token);
+    if (ok) req.webToken = token;
+    return ok;
   }
 }

@@ -1,19 +1,21 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import styles from "./FlipCard.module.scss";
 
 type Face = "q" | "text" | "image";
 
 export function FlipCard({
+  step,
   text,
   imageUrl,
+  onStepChange,
 }: {
+  step: 0 | 1 | 2;
   text: string;
   imageUrl?: string;
+  onStepChange: (next: 0 | 1 | 2) => void;
 }) {
-  const [step, setStep] = useState<0 | 1 | 2>(0);
-
   const face: Face = useMemo(() => {
     if (step === 0) return "q";
     if (step === 1) return "text";
@@ -23,7 +25,8 @@ export function FlipCard({
   const rotation = step * 180; // 0, 180, 360
 
   const onClick = () => {
-    setStep((s) => (s === 2 ? 0 : ((s + 1) as 1 | 2)));
+    const next = (step === 2 ? 0 : ((step + 1) as 1 | 2)) as 0 | 1 | 2;
+    onStepChange(next);
   };
 
   return (

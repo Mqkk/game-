@@ -2,8 +2,8 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "Game+",
-    short_name: "Game+",
+    name: "ForYou",
+    short_name: "ForYou",
     description: "PWA",
     start_url: "/",
     display: "standalone",

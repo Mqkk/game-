@@ -6,10 +6,13 @@ import {
   Param,
   Put,
   Delete,
+  UseGuards,
 } from "@nestjs/common";
 import { AdminService } from "./admin.service";
+import { AdminAuthGuard } from "./admin-auth.guard";
 
 @Controller("api/admin")
+@UseGuards(AdminAuthGuard)
 export class AdminController {
   constructor(private readonly adminService: AdminService) {}
 
@@ -148,5 +151,15 @@ export class AdminController {
   @Put("web/password")
   async setWebPassword(@Body() body: { password: string }) {
     return await this.adminService.setWebPassword(body.password || "");
+  }
+
+  @Get("web/home")
+  async getWebHome() {
+    return await this.adminService.getWebHome();
+  }
+
+  @Put("web/home")
+  async setWebHome(@Body() body: { title?: string; description?: string }) {
+    return await this.adminService.setWebHome(body);
   }
 }

@@ -46,3 +46,22 @@ export class WebConfig {
   @UpdateDateColumn()
   updatedAt: Date;
 }
+
+@Entity("web_card_states")
+@Index(["tokenKey", "cardId"], { unique: true })
+export class WebCardState {
+  @PrimaryGeneratedColumn()
+  id: number;
+
+  @Column({ type: "text" })
+  tokenKey: string; // производный ключ (не храним сырой токен)
+
+  @Column({ type: "integer" })
+  cardId: number;
+
+  @Column({ type: "integer", default: 0 })
+  state: number; // 0 = ?, 1 = text, 2 = image
+
+  @UpdateDateColumn()
+  updatedAt: Date;
+}

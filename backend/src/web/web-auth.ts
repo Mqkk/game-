@@ -16,6 +16,11 @@ function hmac(data: string): string {
   return base64url(crypto.createHmac("sha256", secret).update(data).digest());
 }
 
+export function tokenKey(token: string): string {
+  // ключ для хранения состояний карточек (детерминированный, без раскрытия токена)
+  return hmac(`tokenKey.${token}`);
+}
+
 export function issueToken(): string {
   const ts = Date.now().toString(10);
   const rnd = base64url(crypto.randomBytes(18));

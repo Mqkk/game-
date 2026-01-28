@@ -6,6 +6,17 @@ const API_URL =
   import.meta.env.VITE_API_URL || "https://game-api.dev.datefrueet.ru";
 
 function App() {
+  const [adminToken, setAdminToken] = useState(() => {
+    try {
+      return localStorage.getItem("admin_token") || "";
+    } catch {
+      return "";
+    }
+  });
+  const [adminPassword, setAdminPassword] = useState("");
+  const [adminLoginError, setAdminLoginError] = useState("");
+  const [newAdminPassword, setNewAdminPassword] = useState("");
+
   const [messages, setMessages] = useState([]);
   const [questions, setQuestions] = useState([]);
   const [gameState, setGameState] = useState(null);
@@ -29,26 +40,84 @@ function App() {
   const [newWebCardOrder, setNewWebCardOrder] = useState(0);
   const [newWebCardEnabled, setNewWebCardEnabled] = useState(true);
   const [webPassword, setWebPassword] = useState("");
+  const [webHomeTitle, setWebHomeTitle] = useState("");
+  const [webHomeDescription, setWebHomeDescription] = useState("");
 
   useEffect(() => {
-    loadData();
-  }, []);
+    if (adminToken) {
+      axios.defaults.headers.common.Authorization = `Bearer ${adminToken}`;
+      loadData();
+    }
+  }, [adminToken]);
+
+  const handleAdminLogin = async () => {
+    try {
+      setAdminLoginError("");
+      const res = await axios.post(`${API_URL}/api/admin/auth/login`, {
+        password: adminPassword,
+      });
+      const token = res.data?.token;
+      if (!token) throw new Error("Нет токена");
+      localStorage.setItem("admin_token", token);
+      axios.defaults.headers.common.Authorization = `Bearer ${token}`;
+      setAdminToken(token);
+      setAdminPassword("");
+    } catch (error) {
+      console.error("Ошибка входа в админку:", error);
+      setAdminLoginError(
+        error.response?.data?.message || error.message || "Ошибка входа"
+      );
+    }
+  };
+
+  const handleAdminLogout = () => {
+    localStorage.removeItem("admin_token");
+    delete axios.defaults.headers.common.Authorization;
+    setAdminToken("");
+    setLoading(true);
+  };
+
+  const handleChangeAdminPassword = async () => {
+    if (!newAdminPassword || !newAdminPassword.trim()) {
+      alert("Введите новый пароль админки");
+      return;
+    }
+    try {
+      await axios.put(`${API_URL}/api/admin/auth/password`, {
+        password: newAdminPassword.trim(),
+      });
+      setNewAdminPassword("");
+      alert("Пароль админки обновлён!");
+    } catch (error) {
+      console.error("Ошибка смены пароля админки:", error);
+      alert(error.response?.data?.message || "Ошибка смены пароля");
+    }
+  };
 
   const loadData = async () => {
     try {
-      const [messagesRes, questionsRes, stateRes, bannerRes, webCardsRes] =
-        await Promise.all([
-          axios.get(`${API_URL}/api/admin/messages`),
-          axios.get(`${API_URL}/api/admin/questions`),
-          axios.get(`${API_URL}/api/admin/game-state`),
-          axios.get(`${API_URL}/api/admin/welcome-banner`),
-          axios.get(`${API_URL}/api/admin/web/cards`),
-        ]);
+      const [
+        messagesRes,
+        questionsRes,
+        stateRes,
+        bannerRes,
+        webCardsRes,
+        webHomeRes,
+      ] = await Promise.all([
+        axios.get(`${API_URL}/api/admin/messages`),
+        axios.get(`${API_URL}/api/admin/questions`),
+        axios.get(`${API_URL}/api/admin/game-state`),
+        axios.get(`${API_URL}/api/admin/welcome-banner`),
+        axios.get(`${API_URL}/api/admin/web/cards`),
+        axios.get(`${API_URL}/api/admin/web/home`),
+      ]);
       setMessages(messagesRes.data);
       setQuestions(questionsRes.data);
       setGameState(stateRes.data);
       setWelcomeBanner(bannerRes.data);
       setWebCards(webCardsRes.data || []);
+      setWebHomeTitle(webHomeRes.data?.title || "");
+      setWebHomeDescription(webHomeRes.data?.description || "");
 
       if (stateRes.data?.startDate) {
         // Преобразуем дату в формат для input[type="datetime-local"]
@@ -65,6 +134,9 @@ function App() {
       }
     } catch (error) {
       console.error("Ошибка загрузки данных:", error);
+      if (error.response?.status === 401) {
+        handleAdminLogout();
+      }
     } finally {
       setLoading(false);
     }
@@ -244,6 +316,49 @@ function App() {
     }
   };
 
+  const handleSaveWebHome = async () => {
+    try {
+      await axios.put(`${API_URL}/api/admin/web/home`, {
+        title: webHomeTitle,
+        description: webHomeDescription,
+      });
+      alert("Тайтл/описание главной страницы сохранены!");
+    } catch (error) {
+      console.error("Ошибка сохранения тайтла/описания:", error);
+      alert("Ошибка сохранения тайтла/описания");
+    }
+  };
+
+  if (!adminToken) {
+    return (
+      <div className="app">
+        <header className="header">
+          <h1>🔒 Вход в админку</h1>
+        </header>
+        <div className="web-card">
+          <p className="web-hint">
+            Введите пароль, чтобы открыть админ-панель.
+          </p>
+          <div className="web-row">
+            <input
+              className="web-input"
+              type="password"
+              value={adminPassword}
+              onChange={(e) => setAdminPassword(e.target.value)}
+              placeholder="Пароль…"
+            />
+            <button className="save-btn" onClick={handleAdminLogin}>
+              Войти
+            </button>
+          </div>
+          {adminLoginError && (
+            <p className="question-warning">⚠️ {adminLoginError}</p>
+          )}
+        </div>
+      </div>
+    );
+  }
+
   if (loading) {
     return <div className="loading">Загрузка...</div>;
   }
@@ -252,6 +367,21 @@ function App() {
     <div className="app">
       <header className="header">
         <h1>🎁 Админка игры для Иры</h1>
+        <div className="web-row" style={{ marginTop: 12 }}>
+          <input
+            className="web-input"
+            type="password"
+            value={newAdminPassword}
+            onChange={(e) => setNewAdminPassword(e.target.value)}
+            placeholder="Новый пароль админки…"
+          />
+          <button className="save-btn" onClick={handleChangeAdminPassword}>
+            Сменить пароль
+          </button>
+          <button className="cancel-btn" onClick={handleAdminLogout}>
+            Выйти
+          </button>
+        </div>
         {gameState && (
           <div className="game-info">
             <p>Текущая позиция: {gameState.currentPosition} / 90</p>
@@ -381,6 +511,35 @@ function App() {
 
       <div className="web-section">
         <h2>🌐 Web (Next.js PWA)</h2>
+
+        <div className="web-card">
+          <h3>📝 Главная страница — текст</h3>
+          <p className="web-hint">
+            Эти поля отображаются на главной странице сайта над карточками.
+          </p>
+          <div className="web-row">
+            <input
+              className="web-input"
+              value={webHomeTitle}
+              onChange={(e) => setWebHomeTitle(e.target.value)}
+              placeholder="Тайтл…"
+            />
+          </div>
+          <div className="web-row">
+            <textarea
+              className="web-textarea"
+              value={webHomeDescription}
+              onChange={(e) => setWebHomeDescription(e.target.value)}
+              placeholder="Описание…"
+              rows={3}
+            />
+          </div>
+          <div className="web-row">
+            <button className="save-btn" onClick={handleSaveWebHome}>
+              Сохранить
+            </button>
+          </div>
+        </div>
 
         <div className="web-card">
           <h3>🔐 Пароль авторизации</h3>

@@ -15,6 +15,8 @@ import { WebCard, WebConfig } from "../web/web.entity";
 import { hashPassword } from "../web/web-auth";
 
 const WEB_PASSWORD_KEY = "passwordHash";
+const WEB_HOME_TITLE_KEY = "homeTitle";
+const WEB_HOME_DESC_KEY = "homeDescription";
 
 @Injectable()
 export class AdminService {
@@ -324,5 +326,47 @@ export class AdminService {
       );
     }
     return { success: true };
+  }
+
+  async getWebHome(): Promise<{ title: string; description: string }> {
+    const [t, d] = await Promise.all([
+      this.webConfigRepository.findOne({ where: { key: WEB_HOME_TITLE_KEY } }),
+      this.webConfigRepository.findOne({ where: { key: WEB_HOME_DESC_KEY } }),
+    ]);
+    return {
+      title: t?.value || "",
+      description: d?.value || "",
+    };
+  }
+
+  async setWebHome(input: {
+    title?: string;
+    description?: string;
+  }): Promise<{ success: true }> {
+    await Promise.all([
+      input.title !== undefined
+        ? this.upsertWebConfig(WEB_HOME_TITLE_KEY, input.title)
+        : Promise.resolve(null),
+      input.description !== undefined
+        ? this.upsertWebConfig(WEB_HOME_DESC_KEY, input.description)
+        : Promise.resolve(null),
+    ]);
+    return { success: true };
+  }
+
+  private async upsertWebConfig(
+    key: string,
+    value: string
+  ): Promise<WebConfig> {
+    const existing = await this.webConfigRepository.findOne({ where: { key } });
+    if (existing) {
+      existing.value = value ?? "";
+      return await this.webConfigRepository.save(existing);
+    }
+    const created = this.webConfigRepository.create({
+      key,
+      value: value ?? "",
+    });
+    return await this.webConfigRepository.save(created);
   }
 }
