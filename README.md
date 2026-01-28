@@ -7,6 +7,7 @@
 - `mobile/` - React Native приложение
 - `backend/` - NestJS API
 - `admin/` - Веб-админка
+- `web/` - Новый сайт (Next.js PWA)
 
 ### Backend (NestJS)
 
@@ -27,6 +28,17 @@ npm run dev
 ```
 
 Админка будет доступна на http://localhost:3001
+
+### Web (Next.js PWA)
+
+```bash
+cd web
+npm install
+# API URL берется из NEXT_PUBLIC_API_URL (см. .env.example)
+npm run dev
+```
+
+По умолчанию сайт ожидает API на `http://localhost:3000`.
 
 ### Mobile (React Native)
 

@@ -1,0 +1,35 @@
+.shell {
+  min-height: 100svh;
+  padding-bottom: 92px; /* место под навбар */
+}
+
+.header {
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 0;
+  z-index: 70;
+  padding: calc(env(safe-area-inset-top) + 10px) 16px 10px;
+  backdrop-filter: blur(14px);
+  background: rgba(255, 255, 255, 0.72);
+  border-bottom: 1px solid var(--border);
+  border-radius: 0 0 4px 4px;
+}
+
+.brand {
+  font-weight: 800;
+  letter-spacing: -0.4px;
+  font-size: 17px;
+}
+
+.sub {
+  margin-top: 2px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.main {
+  padding: 16px;
+  /* компенсация фиксированного хидера */
+  padding-top: calc(56px + env(safe-area-inset-top));
+}

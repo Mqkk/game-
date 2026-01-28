@@ -1,4 +1,12 @@
-import { Controller, Get, Post, Body, Param, Put } from "@nestjs/common";
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  Put,
+  Delete,
+} from "@nestjs/common";
 import { AdminService } from "./admin.service";
 
 @Controller("api/admin")
@@ -94,5 +102,51 @@ export class AdminController {
       body.question,
       body.answer
     );
+  }
+
+  // -----------------------
+  // Web (Next.js PWA) admin
+  // -----------------------
+
+  @Get("web/cards")
+  async getWebCards() {
+    return await this.adminService.getWebCards();
+  }
+
+  @Post("web/cards")
+  async createWebCard(
+    @Body()
+    body: {
+      text: string;
+      imageUrl?: string | null;
+      order?: number;
+      enabled?: boolean;
+    }
+  ) {
+    return await this.adminService.createWebCard(body);
+  }
+
+  @Put("web/cards/:id")
+  async updateWebCard(
+    @Param("id") id: string,
+    @Body()
+    body: Partial<{
+      text: string;
+      imageUrl: string | null;
+      order: number;
+      enabled: boolean;
+    }>
+  ) {
+    return await this.adminService.updateWebCard(Number(id), body);
+  }
+
+  @Delete("web/cards/:id")
+  async deleteWebCard(@Param("id") id: string) {
+    return await this.adminService.deleteWebCard(Number(id));
+  }
+
+  @Put("web/password")
+  async setWebPassword(@Body() body: { password: string }) {
+    return await this.adminService.setWebPassword(body.password || "");
   }
 }

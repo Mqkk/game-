@@ -1,7 +1,20 @@
-import { Injectable } from "@nestjs/common";
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
-import { PointMessage, GameState, WelcomeBanner, PointQuestion } from "../game/game.entity";
+import {
+  PointMessage,
+  GameState,
+  WelcomeBanner,
+  PointQuestion,
+} from "../game/game.entity";
+import { WebCard, WebConfig } from "../web/web.entity";
+import { hashPassword } from "../web/web-auth";
+
+const WEB_PASSWORD_KEY = "passwordHash";
 
 @Injectable()
 export class AdminService {
@@ -13,7 +26,11 @@ export class AdminService {
     @InjectRepository(WelcomeBanner)
     private welcomeBannerRepository: Repository<WelcomeBanner>,
     @InjectRepository(PointQuestion)
-    private pointQuestionRepository: Repository<PointQuestion>
+    private pointQuestionRepository: Repository<PointQuestion>,
+    @InjectRepository(WebCard)
+    private webCardRepository: Repository<WebCard>,
+    @InjectRepository(WebConfig)
+    private webConfigRepository: Repository<WebConfig>
   ) {}
 
   async getAllMessages(): Promise<PointMessage[]> {
@@ -54,7 +71,12 @@ export class AdminService {
     return await this.pointMessageRepository.save(pointMessage);
   }
 
-  async getGameState(): Promise<GameState & { reachablePositions?: number[]; positionToDay?: Record<number, number> }> {
+  async getGameState(): Promise<
+    GameState & {
+      reachablePositions?: number[];
+      positionToDay?: Record<number, number>;
+    }
+  > {
     let state = await this.gameStateRepository.findOne({ where: { id: 1 } });
 
     if (!state) {
@@ -112,7 +134,10 @@ export class AdminService {
   }
 
   // Возвращает мапу позиция -> день (totalMoves), на который игрок попадет на эту позицию
-  getPositionToDayMap(currentPosition: number, totalMoves: number): Map<number, number> {
+  getPositionToDayMap(
+    currentPosition: number,
+    totalMoves: number
+  ): Map<number, number> {
     const DICE_SEQUENCE = [
       3, 1, 2, 2, 1, 5, 3, 2, 1, 4, 2, 1, 6, 1, 2, 3, 5, 1, 2, 3, 1, 6, 1, 5, 2,
       1, 3, 1, 5, 2, 2, 3, 4, 4,
@@ -120,7 +145,7 @@ export class AdminService {
     const TOTAL_POINTS = 90;
 
     const positionToDay = new Map<number, number>();
-    
+
     // Текущая позиция уже посещена на текущий день
     if (currentPosition > 0) {
       positionToDay.set(currentPosition, totalMoves);
@@ -230,5 +255,74 @@ export class AdminService {
     }
 
     return await this.pointQuestionRepository.save(pointQuestion);
+  }
+
+  // -----------------------
+  // Web (Next.js PWA) admin
+  // -----------------------
+
+  async getWebCards(): Promise<WebCard[]> {
+    return await this.webCardRepository.find({
+      order: { order: "ASC", id: "ASC" },
+    });
+  }
+
+  async createWebCard(input: {
+    text: string;
+    imageUrl?: string | null;
+    order?: number;
+    enabled?: boolean;
+  }): Promise<WebCard> {
+    const card = this.webCardRepository.create({
+      text: input.text || "",
+      imageUrl: input.imageUrl ?? null,
+      order: Number.isFinite(input.order as number)
+        ? (input.order as number)
+        : 0,
+      enabled: input.enabled !== false,
+    });
+    return await this.webCardRepository.save(card);
+  }
+
+  async updateWebCard(
+    id: number,
+    input: Partial<{
+      text: string;
+      imageUrl: string | null;
+      order: number;
+      enabled: boolean;
+    }>
+  ): Promise<WebCard> {
+    const card = await this.webCardRepository.findOne({ where: { id } });
+    if (!card) throw new NotFoundException("Карточка не найдена");
+    if (input.text !== undefined) card.text = input.text;
+    if (input.imageUrl !== undefined) card.imageUrl = input.imageUrl;
+    if (input.order !== undefined) card.order = input.order;
+    if (input.enabled !== undefined) card.enabled = input.enabled;
+    return await this.webCardRepository.save(card);
+  }
+
+  async deleteWebCard(id: number): Promise<{ success: true }> {
+    await this.webCardRepository.delete({ id });
+    return { success: true };
+  }
+
+  async setWebPassword(password: string): Promise<{ success: true }> {
+    if (!password || !password.trim()) {
+      throw new BadRequestException("Пароль обязателен");
+    }
+    const value = hashPassword(password);
+    const existing = await this.webConfigRepository.findOne({
+      where: { key: WEB_PASSWORD_KEY },
+    });
+    if (existing) {
+      existing.value = value;
+      await this.webConfigRepository.save(existing);
+    } else {
+      await this.webConfigRepository.save(
+        this.webConfigRepository.create({ key: WEB_PASSWORD_KEY, value })
+      );
+    }
+    return { success: true };
   }
 }

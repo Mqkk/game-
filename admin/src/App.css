@@ -431,3 +431,85 @@
   font-weight: 600;
 }
 
+/* Web (Next.js PWA) */
+.web-section {
+  margin: 40px 0;
+  padding-bottom: 30px;
+  border-bottom: 2px solid #e0e0e0;
+}
+
+.web-section h2 {
+  color: #333;
+  margin-bottom: 16px;
+}
+
+.web-card {
+  background: #f9f9f9;
+  border: 2px solid #e0e0e0;
+  border-radius: 10px;
+  padding: 16px;
+  margin-bottom: 14px;
+}
+
+.web-card h3 {
+  margin: 0 0 10px 0;
+  color: #333;
+}
+
+.web-hint {
+  margin: 0 0 10px 0;
+  color: #666;
+  font-size: 0.95em;
+}
+
+.web-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.web-input {
+  flex: 1;
+  min-width: 220px;
+  padding: 10px;
+  border: 2px solid #ddd;
+  border-radius: 6px;
+  font-family: inherit;
+}
+
+.web-input-small {
+  flex: 0 0 120px;
+  min-width: 120px;
+}
+
+.web-textarea {
+  width: 100%;
+  padding: 10px;
+  border: 2px solid #ddd;
+  border-radius: 6px;
+  font-family: inherit;
+  resize: vertical;
+}
+
+.web-check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #333;
+  font-weight: 500;
+}
+
+.web-check input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+}
+
+.web-item {
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid #e0e0e0;
+  background: white;
+  margin-top: 10px;
+}
+

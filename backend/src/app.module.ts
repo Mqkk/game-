@@ -1,19 +1,21 @@
-import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { GameModule } from './game/game.module';
-import { AdminModule } from './admin/admin.module';
-import { join } from 'path';
+import { Module } from "@nestjs/common";
+import { TypeOrmModule } from "@nestjs/typeorm";
+import { GameModule } from "./game/game.module";
+import { AdminModule } from "./admin/admin.module";
+import { WebModule } from "./web/web.module";
+import { join } from "path";
 
 @Module({
   imports: [
     TypeOrmModule.forRoot({
-	  type: 'sqlite',
-  database: join(process.cwd(), 'data', 'game.db'),
-  autoLoadEntities: true,
-  synchronize: true,
+      type: "sqlite",
+      database: join(process.cwd(), "data", "game.db"),
+      autoLoadEntities: true,
+      synchronize: true,
     }),
     GameModule,
     AdminModule,
+    WebModule,
   ],
 })
 export class AppModule {}

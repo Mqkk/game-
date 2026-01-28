@@ -1,0 +1,41 @@
+.page {
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+.title {
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.8px;
+}
+
+.subtitle {
+  margin-top: 6px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.state {
+  margin-top: 14px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.stateError {
+  margin-top: 14px;
+  color: var(--danger);
+  font-size: 13px;
+}
+
+.grid {
+  margin-top: 16px;
+  display: grid;
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+  gap: 12px;
+}
+
+@media (min-width: 560px) {
+  .grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
