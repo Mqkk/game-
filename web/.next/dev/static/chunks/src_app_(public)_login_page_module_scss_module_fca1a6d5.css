@@ -1,0 +1,81 @@
+/* [project]/src/app/(public)/login/page.module.scss.module.css [app-client] (css) */
+.page-module-scss-module__OoUkLG__page {
+  justify-content: center;
+  align-items: center;
+  min-height: 100svh;
+  padding: 18px;
+  display: flex;
+}
+
+.page-module-scss-module__OoUkLG__card {
+  border: 1px solid var(--border);
+  width: min(420px, 100%);
+  box-shadow: var(--shadow);
+  background: #ffffffeb;
+  border-radius: 18px;
+  padding: 18px 16px 16px;
+}
+
+.page-module-scss-module__OoUkLG__title {
+  letter-spacing: -.8px;
+  font-size: 22px;
+  font-weight: 800;
+}
+
+.page-module-scss-module__OoUkLG__sub {
+  color: var(--muted);
+  margin-top: 4px;
+  font-size: 13px;
+}
+
+.page-module-scss-module__OoUkLG__form {
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 14px;
+  display: flex;
+}
+
+.page-module-scss-module__OoUkLG__label {
+  color: #0f0f14b8;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  display: flex;
+}
+
+.page-module-scss-module__OoUkLG__input {
+  border: 1px solid var(--border);
+  color: #0f0f14eb;
+  background: #fffffffa;
+  border-radius: 14px;
+  outline: none;
+  height: 46px;
+  padding: 0 14px;
+}
+
+.page-module-scss-module__OoUkLG__input:focus {
+  border-color: #ff4da673;
+  box-shadow: 0 0 0 3px #ff4da624;
+}
+
+.page-module-scss-module__OoUkLG__error {
+  color: var(--danger);
+  font-size: 13px;
+}
+
+.page-module-scss-module__OoUkLG__btn {
+  background: linear-gradient(90deg, var(--accent), var(--accent2));
+  color: #fff;
+  letter-spacing: -.2px;
+  border: none;
+  border-radius: 14px;
+  height: 46px;
+  font-weight: 800;
+}
+
+.page-module-scss-module__OoUkLG__btn:disabled {
+  opacity: .6;
+}
+
+/*# sourceMappingURL=src_app_%28public%29_login_page_module_scss_module_fca1a6d5.css.map*/

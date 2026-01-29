@@ -1,0 +1,11 @@
+{
+  "/(app)/history/page": "app/(app)/history/page.js",
+  "/(app)/page": "app/(app)/page.js",
+  "/(public)/login/page": "app/(public)/login/page.js",
+  "/_global-error/page": "app/_global-error/page.js",
+  "/_not-found/page": "app/_not-found/page.js",
+  "/apple-icon/route": "app/apple-icon/route.js",
+  "/favicon.ico/route": "app/favicon.ico/route.js",
+  "/icon/route": "app/icon/route.js",
+  "/manifest.webmanifest/route": "app/manifest.webmanifest/route.js"
+}
