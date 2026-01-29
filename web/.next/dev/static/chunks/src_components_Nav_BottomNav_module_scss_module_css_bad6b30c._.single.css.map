@@ -1,6 +1,0 @@
-{
-  "version": 3,
-  "sources": [],
-  "sections": [
-    {"offset": {"line": 1, "column": 0}, "map": {"version":3,"sources":["turbopack:///turbopack:///[project]/src/components/Nav/BottomNav.module.scss"],"sourcesContent":[".nav {\n  position: fixed;\n  left: 0;\n  right: 0;\n  bottom: 0;\n  height: 76px;\n  display: grid;\n  grid-template-columns: 1fr 1fr 1fr;\n  gap: 10px;\n  padding: 10px 12px 14px;\n  background: rgba(255, 255, 255, 0.78);\n  backdrop-filter: blur(14px);\n  border-top: 1px solid var(--border);\n  z-index: 60;\n}\n\n.btn {\n  border-radius: 14px;\n  display: flex;\n  flex-direction: column;\n  align-items: center;\n  justify-content: center;\n  font-weight: 700;\n  font-size: 13px;\n  letter-spacing: 0.2px;\n  border: 1px solid var(--border);\n  background: rgba(255, 255, 255, 0.9);\n  color: var(--text);\n  gap: 4px;\n}\n\n.active {\n  background: linear-gradient(\n    180deg,\n    rgba(255, 77, 166, 0.14),\n    rgba(255, 255, 255, 0.92)\n  );\n  border-color: rgba(255, 77, 166, 0.22);\n  color: var(--accent-text);\n}\n\n.disabled {\n  opacity: 0.55;\n}\n\n.icon {\n  width: 20px;\n  height: 20px;\n}\n\n.label {\n  font-size: 11px;\n  line-height: 1;\n  letter-spacing: 0.2px;\n}\n"],"names":[],"mappings":"AAAA;;;;;;;;;;;;;;;;;AAgBA;;;;;;;;;;;;;;;AAeA;;;;;;AAUA;;;;AAIA;;;;;AAKA"}}]
-}

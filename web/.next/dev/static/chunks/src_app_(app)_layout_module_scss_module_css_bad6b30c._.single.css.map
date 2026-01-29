@@ -1,6 +1,0 @@
-{
-  "version": 3,
-  "sources": [],
-  "sections": [
-    {"offset": {"line": 1, "column": 0}, "map": {"version":3,"sources":["turbopack:///turbopack:///[project]/src/app/(app)/layout.module.scss"],"sourcesContent":[".shell {\n  min-height: 100svh;\n  padding-bottom: 92px; /* место под навбар */\n}\n\n.header {\n  position: fixed;\n  left: 0;\n  right: 0;\n  top: 0;\n  z-index: 70;\n  padding: calc(env(safe-area-inset-top) + 10px) 16px 10px;\n  backdrop-filter: blur(14px);\n  background: rgba(255, 255, 255, 0.72);\n  border-bottom: 1px solid var(--border);\n  border-radius: 0 0 4px 4px;\n}\n\n.brand {\n  font-weight: 800;\n  letter-spacing: -0.4px;\n  font-size: 17px;\n}\n\n.sub {\n  margin-top: 2px;\n  font-size: 12px;\n  color: var(--muted);\n}\n\n.main {\n  padding: 16px;\n  /* компенсация фиксированного хидера */\n  padding-top: calc(56px + env(safe-area-inset-top));\n}\n"],"names":[],"mappings":"AAAA;;;;;AAKA;;;;;;;;;;;;;;AAaA;;;;;;AAMA;;;;;;AAMA"}}]
-}
